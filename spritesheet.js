@@ -25,11 +25,12 @@ class Sprite {
 class Spritesheet {
 
 	constructor(path){
+		this.rect = new Rect(0,0,32,32)
 		this.image = new Image()
 		this.image.src = path
-
+		this.path = path
 		this.sprites = {}
-		this.rect = new Rect(0,0,this.image.width,this.image.height)
+		
 	}
 
 	add_sprites(sprites){
@@ -46,8 +47,11 @@ class Spritesheet {
 	}
 
 	scale(w,h){
-		this.rect.w = this.image.width * w / this.image.width
-		this.rect.h = this.image.height * h / this.image.height
+		this.image.decode().then(() => {
+			this.rect.w = this.image.width * w / this.image.width
+			this.rect.h = this.image.height * h / this.image.height
+		})
+
 		return this
 	}
 

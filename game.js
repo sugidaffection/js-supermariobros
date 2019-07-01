@@ -6,7 +6,7 @@ class Scene {
 		this.h = h
 		this.mario = new Mario()
 		this.mario.keyEvent()
-		this.loop = true
+		this.loop = false
 		this.music = [
 			'assets/main_theme.mp3',
 			'assets/level_complete.mp3'
@@ -18,6 +18,7 @@ class Scene {
 			document.querySelector('#play').style.display = 'none'
 			document.querySelector('#game').style.display = 'grid'
 			this.load_sound(true)
+			this.loop = true
 		})
 	}
 
@@ -36,7 +37,6 @@ class Scene {
 		if(this.mario.win && this.idx == 0){
 			this.idx = 1
 			this.load_sound()
-			
 		}
 	}
 

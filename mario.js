@@ -1,7 +1,7 @@
 class Mario {
 
 	constructor(){
-		this.spritesheet = new Spritesheet('/assets/character.png')
+		this.spritesheet = new Spritesheet('assets/character.png')
 		this.sprites = this.spritesheet
 			.add_sprites(
 				{
