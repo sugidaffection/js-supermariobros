@@ -29,7 +29,7 @@ class Mario {
 			left : false
 		}
 
-		this.flip = true
+		this.flip = false
 
 		this.acc = new Vector2()
 		this.vel = new Vector2()
@@ -93,7 +93,7 @@ class Mario {
 			this.idx = 0
 		}
 
-		if(this.sprites.rect.x > 100){
+		if(this.sprites.rect.x > 400){
 			this.win = true
 		}
 	}

@@ -14,10 +14,16 @@ class Scene {
 		this.idx = 0
 		this.sound = new Audio()
 		
+		document.querySelector('#play').addEventListener('click', ()=>{
+			document.querySelector('#play').style.display = 'none'
+			document.querySelector('#game').style.display = 'grid'
+			this.load_sound(true)
+		})
 	}
 
-	load(){
+	load_sound(loop=false){
 		this.sound.src = this.music[this.idx]
+		this.sound.loop = loop
 		this.sound.play()
 	}
 
@@ -29,9 +35,8 @@ class Scene {
 		}
 		if(this.mario.win && this.idx == 0){
 			this.idx = 1
-			this.load()
-		}else if(!this.sound.src && this.idx == 0){
-			this.load()
+			this.load_sound()
+			
 		}
 	}
 
@@ -59,4 +64,7 @@ class Game {
 
 }
 
-document.addEventListener('DOMContentLoaded', new Game(600,480).run(0))
+document.addEventListener('DOMContentLoaded', () => {
+	let game = new Game(600,480)
+	game.run(0)
+})

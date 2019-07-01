@@ -5,9 +5,46 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Document</title>
+	<style>
+		html,body {
+			height: 100%;
+			margin: 0;
+		}
+		body {
+			background: #333;
+			align-items: center;
+			display: grid;
+			grid-template-rows: 1fr;
+			justify-content: center;
+			height: 100%;
+			margin: 0;
+		}
+
+		#game {
+			display: none;
+			background: #fff;
+		}
+
+		button {
+			border: 1px solid #f3f3f3;
+			cursor: pointer;
+			padding: .45em 1em;
+			font-size: 18px;
+			text-transform: capitalize;
+			outline: none;
+		}
+
+		button:active {
+			background: #f3f3f3;
+		}
+	</style>
 </head>
 <body>
-	<canvas id="game"></canvas>
+	<div class="container">
+		<canvas id="game"></canvas>
+		<button id="play">play</button>
+	</div>
+	
 	<script src="lib.js"></script>
 	<script src="spritesheet.js"></script>
 	<script src="mario.js"></script>
