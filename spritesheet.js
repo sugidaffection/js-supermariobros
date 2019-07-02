@@ -2,13 +2,21 @@ class Sprite {
 
 	constructor(image,[x,y,w,h]){
 		this.image = image
-		this.x = x
-		this.y = y
+		this.x = x * w
+		this.y = y * h
 		this.w = w
 		this.h = h
 	}
 
 	draw(ctx,{x,y,w,h},flip){
+
+		// this.image.decode().then(() => {
+		// 	w = this.image.width * w / this.image.width
+		// 	h = this.image.height * h / this.image.height
+
+			
+		// })
+
 		if(flip){
 			ctx.save()
 			ctx.scale(-1, 1)
@@ -17,7 +25,7 @@ class Sprite {
 		}else{
 			ctx.drawImage(this.image,this.x,this.y,this.w,this.h,x,y,w,h)
 		}
-		
+
 	}
 
 }
@@ -25,15 +33,13 @@ class Sprite {
 class Spritesheet {
 
 	constructor(path){
-		this.rect = new Rect(0,0,32,32)
 		this.image = new Image()
 		this.image.src = path
 		this.path = path
 		this.sprites = {}
-		
 	}
 
-	add_sprites(sprites){
+	get_sprites(sprites){
 		Object.keys(sprites).forEach(k => {
 			if (!this.sprites.hasOwnProperty(k)){
 				this.sprites[k] = []
@@ -43,38 +49,31 @@ class Spritesheet {
 			})
 		});
 
-		return this
+		return this.sprites
 	}
 
-	scale(w,h){
-		this.image.decode().then(() => {
-			this.rect.w = this.image.width * w / this.image.width
-			this.rect.h = this.image.height * h / this.image.height
-		})
+	get_sprite(sprite){
+		return new Sprite(this.image, sprite)
+	}
+}
 
-		return this
+class SpriteAnimation {
+
+	constructor(sprites){
+		this.idx = 0
+		this.speed = .1
+		this.sprites = sprites
 	}
 
-	pos(x,y){
-		this.rect.x = x
-		this.rect.y = y
-		return this
-	}
+	play(ctx, name, rect, flip){
 
-	draw(ctx,name,idx,flip){
-		this.sprites[name][idx].draw(ctx,this.rect,flip)
+		this.idx += this.speed
 
-		return this
-	}
+		if(Math.floor(this.idx) > this.sprites[name].length - 1){
+			this.idx = 0
+		}
 
-	update(){
-		this.rect.update()
-
-		return this
-	}
-
-	length(animation){
-		return this.sprites[animation].length
+		this.sprites[name][Math.floor(this.idx)].draw(ctx, rect, flip)
 	}
 
 }

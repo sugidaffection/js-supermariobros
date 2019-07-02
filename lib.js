@@ -61,3 +61,35 @@ class Rect {
 		this.midbottom = this.centerx, this.bottom
 	}
 }
+
+class Collider{
+
+	constructor(obj, target){
+		this.object = obj
+		this.target = target
+	}
+
+	collide_bottom(){
+		if(this.object.rect.center > this.target.left && this.object.rect.center < this.target.right){
+			if(this.object.rect.bottom > this.target.rect.top){
+				console.log(true)
+				return true
+			}else{
+				console.log(false)
+			}
+		}
+	}
+
+	collide_right(){
+		return this.object.right > this.target.left
+	}
+
+	collide_left(){
+		return this.object.left < this.target.right
+	}
+
+	collide_top(){
+		return this.object.top < this.target.bottom
+	}
+
+}

@@ -1,28 +1,30 @@
 class Mario {
 
 	constructor(){
-		this.spritesheet = new Spritesheet('assets/character.png')
-		this.sprites = this.spritesheet
-			.add_sprites(
+		const spritesheet = new Spritesheet('assets/character.png')
+		const sprites = spritesheet
+			.get_sprites(
 				{
 					idle : [
-						[80.5,34.5,15,15]
+						[5,2.13,16,16]
 					],
 					walk : [
-						[97.5,34.5,15,15],
-						[114.5,34.5,15,15],
-						[131.5,34.5,15,15]
+						[6.07,2.13,16,16],
+						[7.15,2.13,16,16],
+						[8.20,2.13,16,16]
 					],
 					turn : [
-						[148.5,34.5,15,15]
+						[9.25,2.13,16,16]
 					],
 					jump : [
-						[165.5,34.5,15,15]
+						[10.30,2.13,16,16]
 					]
 				}
 			)
-			.scale(32,32)
-			.pos(0,0)
+
+		this.spriteanimation = new SpriteAnimation(sprites)
+		this.rect = new Rect(10,10*32,32,32)
+
 		this.controller = {
 			up : false,
 			right : false,
@@ -38,35 +40,31 @@ class Mario {
 		this.mass = 20
 		this.speed = 8
 		this.jump = -10
-		this.animation = 'idle'
-		this.idx = 0
+		this.animation = 'turn'
 		this.ground = false
 		this.win = false
+		this.x = 0
 	}
 
 	update(dt){
-		this.sprites.update()
+		this.rect.update()
 
 		this.acc = new Vector2(0, this.mass)
 		
 		if (this.controller.right){
 			this.acc.x = this.speed
 			this.flip = false
+			this.x += 1
 		}
 
 		if (this.controller.left){
 			this.acc.x = -this.speed
 			this.flip = true
+			this.x -= 1
 		}
 
 		this.acc.add(this.vel.x * -this.frict, this.vel.y * this.grav)
 		this.vel.add(this.acc.x * dt, this.acc.y * dt)
-
-		if (this.sprites.rect.bottom >= 400){
-			this.sprites.rect.bottom = 400
-			this.vel.y = 0
-			this.ground = true
-		}
 
 		if (this.ground && this.controller.up){
 			this.vel.y = this.jump
@@ -85,21 +83,15 @@ class Mario {
 			}
 		}
 
-		this.sprites.rect.x += this.vel.x
-		this.sprites.rect.y += this.vel.y
+		this.spriteanimation.speed = this.speed * dt
 
-		this.idx += this.speed* dt
-		if(Math.floor(this.idx) > this.sprites.length(this.animation) - 1){
-			this.idx = 0
-		}
-
-		if(this.sprites.rect.x > 400){
+		if(this.rect.x > 400){
 			this.win = true
 		}
 	}
 
 	render(ctx){
-		this.sprites.draw(ctx,this.animation,Math.floor(this.idx),this.flip)
+		this.spriteanimation.play(ctx, this.animation, this.rect, this.flip)
 	}
 
 	keyEvent(){
