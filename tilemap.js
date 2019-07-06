@@ -144,6 +144,7 @@ class Tilemap {
 
 		this.solidsprites = []
 		this.background = []
+		this.x = 0
 
 		map.forEach(tiles => {
 			const sprite = spritesheet.get_sprite([...tiles.sprite, ...[16,16]])

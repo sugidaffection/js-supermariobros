@@ -14,6 +14,7 @@ class Scene {
 		]
 		this.idx = 0
 		this.sound = new Audio()
+		this.sound.volume = 0.1
 		
 		document.querySelector('#play').addEventListener('click', ()=>{
 			document.querySelector('#play').style.display = 'none'
@@ -21,6 +22,8 @@ class Scene {
 			this.load_sound(true)
 			this.loop = true
 		})
+
+		this.win = false
 	}
 
 	load_sound(loop=false){
@@ -35,10 +38,17 @@ class Scene {
 		this.mario.render(this.ctx)
 		if(this.loop){
 			this.mario.update(1/60)
-			if(this.mario.rect.right > this.w / 2 && this.mario.controller.right && this.mario.x < 1200){
-				this.tilemap.update(this.mario.vel.x)
-			}else{
-				this.mario.rect.x += this.mario.vel.x
+			if(this.mario.controller.right){
+				if(this.tilemap.x < 1200 && this.mario.rect.right > this.w / 2){
+					this.tilemap.update(this.mario.vel.x)
+					this.tilemap.x += 1
+				}else{
+					this.mario.rect.x += this.mario.vel.x
+				}
+			}else if(this.mario.controller.left){
+				if(this.mario.vel.x < 0){
+					this.mario.rect.x += this.mario.vel.x
+				}
 			}
 
 			if(this.mario.rect.left < 0){
@@ -50,20 +60,46 @@ class Scene {
 			}
 
 			this.tilemap.solidsprites.forEach(obj => {
-				if(this.mario.rect.right > obj.rect.left && this.mario.rect.left < obj.rect.left ||
-					this.mario.rect.left < obj.rect.right && this.mario.rect.right > obj.rect.right){
-					if(this.mario.rect.bottom > obj.rect.top && this.mario.rect.top < obj.rect.top){
-						this.mario.rect.y = obj.rect.top - this.mario.rect.h
+				if(this.mario.rect.bottom + this.mario.vel.y > obj.rect.top &&
+					this.mario.rect.top < obj.rect.top &&
+					this.mario.rect.left + 1 < obj.rect.right &&
+					this.mario.rect.right - 1 > obj.rect.left){
 						this.mario.vel.y = 0
+						this.mario.rect.y = obj.rect.top - this.mario.rect.h
 						this.mario.ground = true
 					}
-				}
+				else if(this.mario.rect.top + this.mario.vel.y < obj.rect.bottom &&
+					this.mario.rect.bottom > obj.rect.bottom &&
+					this.mario.rect.left + 1 < obj.rect.right &&
+					this.mario.rect.right - 1 > obj.rect.left){
+						this.mario.rect.y = obj.rect.bottom
+						this.mario.vel.y = 1
+					}
+				if(this.mario.rect.right > obj.rect.left &&
+					this.mario.rect.left < obj.rect.left &&
+					this.mario.rect.top < obj.rect.bottom &&
+					this.mario.rect.bottom > obj.rect.top){
+						this.mario.rect.x = obj.rect.left - this.mario.rect.w
+						this.mario.vel.x = 0
+					}
+				else if(this.mario.rect.left < obj.rect.right &&
+					this.mario.rect.right > obj.rect.right &&
+					this.mario.rect.top < obj.rect.bottom &&
+					this.mario.rect.bottom > obj.rect.top){
+						this.mario.rect.x = obj.rect.right
+						this.mario.vel.x = 0
+					}
 			})
 
 			this.mario.rect.y += this.mario.vel.y
 
 		}
-		if(this.mario.win && this.idx == 0){
+
+		if(this.tilemap.x == 1200){
+			this.win = true
+		}
+
+		if(this.win && this.idx == 0){
 			this.idx = 1
 			this.load_sound()
 		}
