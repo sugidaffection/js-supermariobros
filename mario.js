@@ -37,13 +37,12 @@ class Mario {
 		this.vel = new Vector2()
 		this.grav = .7
 		this.frict = 1.6
-		this.mass = 20
+		this.mass = 25
 		this.speed = 8
 		this.jump = -10
 		this.animation = 'turn'
 		this.ground = false
 		this.win = false
-		this.x = 0
 	}
 
 	update(dt){
@@ -54,13 +53,11 @@ class Mario {
 		if (this.controller.right){
 			this.acc.x = this.speed
 			this.flip = false
-			this.x += 1
 		}
 
 		if (this.controller.left){
 			this.acc.x = -this.speed
 			this.flip = true
-			this.x -= 1
 		}
 
 		this.acc.add(this.vel.x * -this.frict, this.vel.y * this.grav)
@@ -84,10 +81,6 @@ class Mario {
 		}
 
 		this.spriteanimation.speed = this.speed * dt
-
-		if(this.rect.x > 400){
-			this.win = true
-		}
 	}
 
 	render(ctx){
