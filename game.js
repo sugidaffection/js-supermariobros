@@ -59,6 +59,10 @@ class Scene {
 				this.mario.rect.x = this.w - this.mario.rect.w
 			}
 
+			// Reset grounded state before collision checks so Mario can't
+			// keep jumping after walking off an edge.
+			this.mario.ground = false
+
 			this.tilemap.solidsprites.forEach(obj => {
 				if(this.mario.rect.bottom + this.mario.vel.y > obj.rect.top &&
 					this.mario.rect.top < obj.rect.top &&
