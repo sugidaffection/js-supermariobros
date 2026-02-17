@@ -14,7 +14,11 @@ class Tilemap {
 	}
 
 	_load(levelData) {
-		levelData.backgrounds.forEach((tiles) => {
+		const tileLayers = levelData.backgrounds || (levelData.chunks || []).flatMap((chunk) =>
+			(chunk.tiles || []).map((tileDef) => ({ ...tileDef }))
+		)
+
+		tileLayers.forEach((tiles) => {
 			const sprite = this.tilesheet.get_sprite([...tiles.sprite, 16, 16])
 			tiles.ranges.forEach((range) => {
 				for (let x = range[0]; x < range[1]; x++) {
@@ -35,8 +39,6 @@ class Tilemap {
 						} else {
 							this.background.push(tile)
 						}
-
-						this.addToSector(tile, isSky ? 'background' : 'solid')
 					}
 				}
 			})
