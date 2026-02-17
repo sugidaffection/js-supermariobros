@@ -168,17 +168,21 @@ class Tilemap {
 		})
 	}
 
-	render(ctx){
+	render(ctx, cameraX=0){
 		this.background
-			.filter(obj => obj.rect.right <= this.w + 32 && obj.rect.bottom <= this.h + 32)
+			.filter(obj => obj.rect.right - cameraX >= -32 && obj.rect.left - cameraX <= this.w + 32 && obj.rect.bottom <= this.h + 32)
 			.forEach(obj => {
-				obj.sprite.draw(ctx, obj.rect, false)
+				obj.sprite.draw(ctx, new Rect(obj.rect.x - cameraX, obj.rect.y, obj.rect.w, obj.rect.h), false)
 			})
 		this.solidsprites
-			.filter(obj => obj.rect.right <= this.w + 32 && obj.rect.bottom <= this.h + 32)
+			.filter(obj => obj.rect.right - cameraX >= -32 && obj.rect.left - cameraX <= this.w + 32 && obj.rect.bottom <= this.h + 32)
 			.forEach(obj => {
-				obj.sprite.draw(ctx, obj.rect, false)
+				obj.sprite.draw(ctx, new Rect(obj.rect.x - cameraX, obj.rect.y, obj.rect.w, obj.rect.h), false)
 			})
+	}
+
+	buildCollisionGrid(grid) {
+		this.solidsprites.forEach(obj => grid.insert(obj.rect))
 	}
 
 	update(speed){

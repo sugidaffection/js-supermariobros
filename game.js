@@ -5,108 +5,91 @@ class Scene {
 		this.w = w
 		this.h = h
 		this.tilemap = new Tilemap(w,h)
-		this.mario = new Mario()
-		this.mario.keyEvent()
 		this.loop = false
 		this.music = [
 			'assets/main_theme.mp3',
 			'assets/level_complete.mp3'
 		]
-		this.idx = 0
 		this.sound = new Audio()
 		this.sound.volume = 0.1
-		
+
+		this.world = this.createWorld()
+		this.bootstrapECS()
+
 		document.querySelector('#play').addEventListener('click', ()=>{
 			document.querySelector('#play').style.display = 'none'
 			document.querySelector('#game').style.display = 'grid'
-			this.load_sound(true)
 			this.loop = true
+			this.world.resources.game.loop = true
+			if (!this.world.resources.audio.switchedToWinTheme) {
+				this.sound.src = this.music[0]
+				this.sound.loop = true
+				this.sound.play()
+			}
 		})
-
-		this.win = false
 	}
 
-	load_sound(loop=false){
-		this.sound.src = this.music[this.idx]
-		this.sound.loop = loop
-		this.sound.play()
+	createWorld() {
+		const world = new World()
+		world.resources.ctx = this.ctx
+		world.resources.viewport = { w: this.w, h: this.h }
+		world.resources.tilemap = this.tilemap
+		world.resources.music = this.music
+		world.resources.sound = this.sound
+		world.resources.ui = { playButton: document.querySelector('#play') }
+		world.resources.input = { keys: {} }
+		world.resources.animations = new Map()
+		world.resources.camera = { x: 0, maxX: 1200, viewportWidth: this.w }
+		world.resources.collisionGrid = new StaticCollisionGrid(32)
+		return world
+	}
+
+	bootstrapECS() {
+		;['Transform', 'Velocity', 'Collider', 'Sprite', 'Input', 'State'].forEach(name => this.world.registerComponent(name))
+
+		// Sprint 2: static collision grid now replaces ad-hoc tile collider loops.
+		this.tilemap.buildCollisionGrid(this.world.resources.collisionGrid)
+
+		// Sprint 1: Mario is now represented as an ECS entity.
+		const marioEntity = this.world.createEntity()
+		this.world.resources.playerEntity = marioEntity
+		this.world.addComponent(marioEntity, 'Transform', ECSComponents.Transform(10, 10 * 32, 32, 32))
+		this.world.addComponent(marioEntity, 'Velocity', ECSComponents.Velocity())
+		this.world.addComponent(marioEntity, 'Collider', ECSComponents.Collider('dynamic', true))
+		this.world.addComponent(marioEntity, 'Sprite', ECSComponents.Sprite('turn', false))
+		this.world.addComponent(marioEntity, 'Input', ECSComponents.Input())
+		this.world.addComponent(marioEntity, 'State', ECSComponents.State('turn'))
+
+		const spritesheet = new Spritesheet('assets/character.png')
+		const sprites = spritesheet.get_sprites({
+			idle : [[5,2.13,16,16]],
+			walk : [[6.07,2.13,16,16], [7.15,2.13,16,16], [8.20,2.13,16,16]],
+			turn : [[9.25,2.13,16,16]],
+			jump : [[10.30,2.13,16,16]],
+		})
+		this.world.resources.animations.set(marioEntity, new SpriteAnimation(sprites))
+
+		this.world.addSystem(new InputSystem(), 1)
+		this.world.addSystem(new PhysicsSystem(), 2)
+		this.world.addSystem(new CollisionSystem(), 3)
+		this.world.addSystem(new AnimationSystem(), 4)
+		this.world.addSystem(new RenderSystem(), 5)
+		// Sprint 3: win, audio and UI transitions are now state/resource-driven.
+		this.world.addSystem(new AudioSystem(), 6)
 	}
 
 	play(){
-		this.ctx.clearRect(0,0,this.w,this.h)
-		this.tilemap.render(this.ctx)
-		this.mario.render(this.ctx)
-		if(this.loop){
-			this.mario.update(1/60)
-			if(this.mario.controller.right){
-				if(this.tilemap.x < 1200 && this.mario.rect.right > this.w / 2){
-					this.tilemap.update(this.mario.vel.x)
-					this.tilemap.x += 1
-				}else{
-					this.mario.rect.x += this.mario.vel.x
-				}
-			}else if(this.mario.controller.left){
-				if(this.mario.vel.x < 0){
-					this.mario.rect.x += this.mario.vel.x
-				}
-			}
-
-			if(this.mario.rect.left < 0){
-				this.mario.rect.x = 0
-			}
-
-			if(this.mario.rect.right > this.w){
-				this.mario.rect.x = this.w - this.mario.rect.w
-			}
-
-			this.tilemap.solidsprites.forEach(obj => {
-				if(this.mario.rect.bottom + this.mario.vel.y > obj.rect.top &&
-					this.mario.rect.top < obj.rect.top &&
-					this.mario.rect.left + 1 < obj.rect.right &&
-					this.mario.rect.right - 1 > obj.rect.left){
-						this.mario.vel.y = 0
-						this.mario.rect.y = obj.rect.top - this.mario.rect.h
-						this.mario.ground = true
-					}
-				else if(this.mario.rect.top + this.mario.vel.y < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.bottom &&
-					this.mario.rect.left + 1 < obj.rect.right &&
-					this.mario.rect.right - 1 > obj.rect.left){
-						this.mario.rect.y = obj.rect.bottom
-						this.mario.vel.y = 1
-					}
-				if(this.mario.rect.right > obj.rect.left &&
-					this.mario.rect.left < obj.rect.left &&
-					this.mario.rect.top < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.top){
-						this.mario.rect.x = obj.rect.left - this.mario.rect.w
-						this.mario.vel.x = 0
-					}
-				else if(this.mario.rect.left < obj.rect.right &&
-					this.mario.rect.right > obj.rect.right &&
-					this.mario.rect.top < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.top){
-						this.mario.rect.x = obj.rect.right
-						this.mario.vel.x = 0
-					}
-			})
-
-			this.mario.rect.y += this.mario.vel.y
-
-		}
-
-		if(this.tilemap.x == 1200){
-			this.win = true
-		}
-
-		if(this.win && this.idx == 0){
-			this.idx = 1
-			this.load_sound()
+		if (this.loop) {
+			this.world.update(1/60)
+		} else {
+			this.world.getStore('Transform') // keep world initialized
+			new RenderSystem().update(this.world)
 		}
 	}
 
 	stop(){
 		this.loop = false
+		this.world.resources.game.loop = false
 	}
 
 }
