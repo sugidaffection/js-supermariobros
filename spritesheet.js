@@ -63,9 +63,26 @@ class SpriteAnimation {
 		this.idx = 0
 		this.speed = .1
 		this.sprites = sprites
+		this.currentName = 'idle'
+		console.log('SpriteAnimation created with sprites:', Object.keys(sprites))
 	}
 
 	play(ctx, name, rect, flip){
+		if (!this.sprites[name] || this.sprites[name].length === 0) {
+			console.warn('SpriteAnimation: sprites[' + name + '] is undefined. Available:', Object.keys(this.sprites))
+			name = 'idle'
+			if (!this.sprites[name] || this.sprites[name].length === 0) {
+				const firstKey = Object.keys(this.sprites)[0]
+				if (firstKey) {
+					console.warn('SpriteAnimation: falling back to first key:', firstKey)
+					name = firstKey
+				}
+				else {
+					console.error('SpriteAnimation: no sprites available')
+					return
+				}
+			}
+		}
 
 		this.idx += this.speed
 
