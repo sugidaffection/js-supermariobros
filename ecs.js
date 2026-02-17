@@ -3,6 +3,7 @@ class World {
 		this.entities = new Map()
 		this.systems = []
 		this.nextEntityId = 1
+		this.resources = {}
 	}
 
 	createEntity(components = {}) {
@@ -31,5 +32,30 @@ class World {
 				system.run(this, context)
 			}
 		})
+	}
+
+	getComponent(entityId, componentName) {
+		const entity = this.entities.get(entityId)
+		if (!entity) return null
+		return entity[componentName] || null
+	}
+
+	setComponent(entityId, componentName, component) {
+		const entity = this.entities.get(entityId)
+		if (!entity) return false
+		entity[componentName] = component
+		return true
+	}
+
+	removeComponent(entityId, componentName) {
+		const entity = this.entities.get(entityId)
+		if (!entity) return false
+		delete entity[componentName]
+		return true
+	}
+
+	hasComponent(entityId, componentName) {
+		const entity = this.entities.get(entityId)
+		return entity ? componentName in entity : false
 	}
 }
