@@ -35,11 +35,12 @@ class Mario {
 
 		this.acc = new Vector2()
 		this.vel = new Vector2()
-		this.grav = .7
-		this.frict = 1.6
-		this.mass = 25
-		this.speed = 8
-		this.jump = -10
+		this.gravity = 2200
+		this.groundDrag = 14
+		this.airDrag = 3
+		this.moveAccel = 3200
+		this.maxSpeed = 260
+		this.jump = -700
 		this.animation = 'turn'
 		this.ground = false
 		this.win = false
@@ -48,20 +49,23 @@ class Mario {
 	update(dt){
 		this.rect.update()
 
-		this.acc = new Vector2(0, this.mass)
-		
+		this.acc = new Vector2(0, this.gravity)
+
 		if (this.controller.right){
-			this.acc.x = this.speed
+			this.acc.x += this.moveAccel
 			this.flip = false
 		}
 
 		if (this.controller.left){
-			this.acc.x = -this.speed
+			this.acc.x -= this.moveAccel
 			this.flip = true
 		}
 
-		this.acc.add(this.vel.x * -this.frict, this.vel.y * this.grav)
+		const drag = this.ground ? this.groundDrag : this.airDrag
+		this.acc.x += -this.vel.x * drag
+
 		this.vel.add(this.acc.x * dt, this.acc.y * dt)
+		this.vel.x = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, this.vel.x))
 
 		if (this.ground && this.controller.up){
 			this.vel.y = this.jump
@@ -80,7 +84,7 @@ class Mario {
 			}
 		}
 
-		this.spriteanimation.speed = this.speed * dt
+		this.spriteanimation.speed = Math.max(0.08, Math.abs(this.vel.x) * dt * 0.08)
 	}
 
 	render(ctx){
