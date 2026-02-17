@@ -1,3 +1,5 @@
+import { Rect } from '../../lib.js'
+
 export class CollisionSystem {
 	update(world, scene) {
 		const tilemap = world.resources.tilemap
@@ -9,6 +11,8 @@ export class CollisionSystem {
 			if (collider.type !== 'dynamic' || !collider.solid) return
 
 			transform.grounded = false
+			const input = world.getComponent(entity.id, 'Input')
+			
 			const potentialTiles = tilemap.querySolids(transform)
 			potentialTiles.forEach(tile => {
 				const rect = tile.rect
@@ -35,14 +39,22 @@ export class CollisionSystem {
 					transform.y + transform.h > rect.top) {
 					transform.x = rect.left - transform.w
 					transform.update()
-					velocity.x = 0
+					if (input) {
+						velocity.x = 0
+					} else {
+						velocity.x *= -1 // Bounce
+					}
 				} else if (transform.x < rect.right &&
 					transform.x + transform.w > rect.right &&
 					transform.y < rect.bottom &&
 					transform.y + transform.h > rect.top) {
 					transform.x = rect.right
 					transform.update()
-					velocity.x = 0
+					if (input) {
+						velocity.x = 0
+					} else {
+						velocity.x *= -1 // Bounce
+					}
 				}
 			})
 		})

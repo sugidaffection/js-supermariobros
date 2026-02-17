@@ -11,7 +11,7 @@ export function createMarioEntity(world, spritesheet) {
 
 	const entityId = world.createEntity({
 		Transform: new Rect(32, 320, 32, 32),
-		Velocity: { x: 0, y: 0, speed: 8, jump: -12, friction: 0.8, gravity: 0.5, mass: 1 },
+		Velocity: { x: 0, y: 0, speed: 6, jump: -10, friction: 0.8, gravity: 1.5, mass: 1 },
 		Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
 		Sprite: { animation: 'idle', flip: false },
 		Input: { up: false, left: false, right: false, jumpPressed: false },
@@ -26,18 +26,17 @@ export function createMarioEntity(world, spritesheet) {
 }
 
 export function createEnemyEntities(world, spriteSheet, mapEnemies) {
-	const sprites = spriteSheet.get_sprites({
-		walk: [[0, 1, 16, 16], [1, 1, 16, 16]]
-	})
-
 	mapEnemies.forEach((enemyDef) => {
+		const sprites = spriteSheet.get_sprites({
+			walk: [[0, 1, 16, 16], [1, 1, 16, 16]]
+		})
+
 		enemyDef.position.forEach((pos) => {
 			const entityId = world.createEntity({
 				Transform: new Rect(pos[0] * 32, pos[1] * 32, 32, 32),
-				Velocity: { x: -2, y: 0, speed: 2, jump: 0, friction: 0, gravity: 0.5, mass: 1 },
+				Velocity: { x: -2, y: 0, speed: 2, friction: 0, gravity: 0.9, mass: 1 },
 				Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
 				Sprite: { animation: 'walk', flip: true },
-				Input: { up: false, left: false, right: false, jumpPressed: false },
 				State: { value: 'walk', facing: 'left', won: false }
 			})
 			world.getComponent(entityId, 'Transform').grounded = false

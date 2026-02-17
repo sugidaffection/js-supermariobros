@@ -1,25 +1,39 @@
+import { Rect } from '../../lib.js'
+
 export class PhysicsSystem {
 	update(world, dt) {
-		const entities = world.query(['Transform', 'Velocity', 'Input'])
+		const entities = world.query(['Transform', 'Velocity'])
 		entities.forEach(entity => {
 			const transform = world.getComponent(entity.id, 'Transform')
 			const velocity = world.getComponent(entity.id, 'Velocity')
-			const input = world.getComponent(entity.id, 'Input')
+			const input = world.getComponent(entity.id, 'Input') // Optional
 
 			let accX = 0
 			let accY = velocity.gravity
 
-			if (input.right) accX = velocity.speed
-			if (input.left) accX = -velocity.speed
+			if (input) {
+				// Direct velocity setting for responsive controls
+				if (input.right) {
+					velocity.x = velocity.speed
+				} else if (input.left) {
+					velocity.x = -velocity.speed
+				} else {
+					// Apply friction when no input
+					velocity.x *= velocity.friction
+					if (Math.abs(velocity.x) < 0.1) velocity.x = 0
+				}
+			} else {
+				// For enemies, apply standard friction
+				velocity.x *= (1 - velocity.friction)
+			}
 
-			accX += velocity.x * -velocity.friction
-
-			velocity.x += accX
 			velocity.y += accY
 
-			if (transform.grounded && input.jumpPressed) {
+			// Jump only when grounded
+			if (transform.grounded && input && input.jumpPressed) {
 				velocity.y = velocity.jump
 				transform.grounded = false
+				input.jumpPressed = false // Reset jump
 			}
 
 			transform.x += velocity.x
@@ -32,10 +46,15 @@ export class PhysicsSystem {
 			}
 		})
 
-		const playerTransform = world.getComponent(world.resources.playerEntity, 'Transform')
-		const camera = world.resources.camera
-		const viewport = world.resources.viewport
-		const halfViewport = (viewport.viewportWidth || viewport.w) / 2
-		camera.x = Math.max(0, Math.min(camera.maxX, playerTransform.x - halfViewport))
+		const playerEntityId = world.resources.playerEntity
+		if (playerEntityId) {
+			const playerTransform = world.getComponent(playerEntityId, 'Transform')
+			if (playerTransform) {
+				const camera = world.resources.camera
+				const viewport = world.resources.viewport
+				const halfViewport = (viewport.viewportWidth || viewport.w) / 2
+				camera.x = Math.max(0, Math.min(camera.maxX, playerTransform.x - halfViewport))
+			}
+		}
 	}
 }

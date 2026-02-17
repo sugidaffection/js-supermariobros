@@ -18,16 +18,19 @@ export class InputSystem {
 	update(world) {
 		this.bindEvents(world)
 		const keys = world.resources.input.keys
-		const entities = world.query(['Input', 'State'])
-		entities.forEach(entity => {
-			const input = world.getComponent(entity.id, 'Input')
-			const state = world.getComponent(entity.id, 'State')
-			input.up = !!keys[32]
-			input.left = !!keys[37]
-			input.right = !!keys[39]
-			input.jumpPressed = !!keys[32]
-			if (input.left) state.facing = 'left'
-			if (input.right) state.facing = 'right'
-		})
+		const playerEntityId = world.resources.playerEntity
+		if (!playerEntityId) return
+
+		const input = world.getComponent(playerEntityId, 'Input')
+		const state = world.getComponent(playerEntityId, 'State')
+		if (!input || !state) return
+
+		input.up = !!keys[32] || !!keys[38] // Space or Up
+		input.left = !!keys[37]
+		input.right = !!keys[39]
+		input.jumpPressed = !!keys[32] || !!keys[38]
+
+		if (input.left) state.facing = 'left'
+		if (input.right) state.facing = 'right'
 	}
 }

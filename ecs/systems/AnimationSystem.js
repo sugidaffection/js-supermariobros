@@ -22,29 +22,32 @@ export class AnimationSystem {
 					sprite.animation = 'jump'
 					state.value = 'jump'
 				}
-			} else if (!input.left && !input.right) {
-				if (availableSprites.includes('idle')) {
-					sprite.animation = 'idle'
-					state.value = 'idle'
-				} else if (availableSprites.includes('walk')) {
-					sprite.animation = 'walk'
-					state.value = 'walk'
-				}
-			} else if ((input.left && velocity.x > 0) || (input.right && velocity.x < 0)) {
-				if (availableSprites.includes('turn')) {
-					sprite.animation = 'turn'
-					state.value = 'turn'
-				} else if (availableSprites.includes('walk')) {
-					sprite.animation = 'walk'
-					state.value = 'walk'
+			} else if (isPlayer) {
+				// Player animation based on input and velocity
+				const isMoving = Math.abs(velocity.x) > 0.5
+				if (isMoving) {
+					if (availableSprites.includes('walk')) {
+						sprite.animation = 'walk'
+						state.value = 'walk'
+					}
+				} else {
+					if (availableSprites.includes('idle')) {
+						sprite.animation = 'idle'
+						state.value = 'idle'
+					}
 				}
 			} else {
-				if (availableSprites.includes('walk')) {
-					sprite.animation = 'walk'
-					state.value = 'walk'
-				} else if (availableSprites.includes('idle')) {
-					sprite.animation = 'idle'
-					state.value = 'idle'
+				// Enemy animation - always walk if moving
+				if (Math.abs(velocity.x) > 0.1) {
+					if (availableSprites.includes('walk')) {
+						sprite.animation = 'walk'
+						state.value = 'walk'
+					}
+				} else {
+					if (availableSprites.includes('idle')) {
+						sprite.animation = 'idle'
+						state.value = 'idle'
+					}
 				}
 			}
 		})
