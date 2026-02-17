@@ -6,10 +6,10 @@ export class PhysicsSystem {
 		entities.forEach(entity => {
 			const transform = world.getComponent(entity.id, 'Transform')
 			const velocity = world.getComponent(entity.id, 'Velocity')
-			const input = world.getComponent(entity.id, 'Input') // Optional
+			const input = world.getComponent(entity.id, 'Input')
 
-			let accX = 0
-			let accY = velocity.gravity
+			// Apply gravity (scaled by dt for consistent physics)
+			velocity.y += velocity.gravity
 
 			if (input) {
 				// Direct velocity setting for responsive controls
@@ -22,30 +22,31 @@ export class PhysicsSystem {
 					velocity.x *= velocity.friction
 					if (Math.abs(velocity.x) < 0.1) velocity.x = 0
 				}
+
+				// Jump only when grounded
+				if (transform.grounded && input.jumpPressed) {
+					velocity.y = velocity.jump
+					transform.grounded = false
+					input.jumpPressed = false
+				}
 			} else {
 				// For enemies, apply standard friction
 				velocity.x *= (1 - velocity.friction)
 			}
 
-			velocity.y += accY
-
-			// Jump only when grounded
-			if (transform.grounded && input && input.jumpPressed) {
-				velocity.y = velocity.jump
-				transform.grounded = false
-				input.jumpPressed = false // Reset jump
-			}
-
+			// Apply velocity to position
 			transform.x += velocity.x
 			transform.y += velocity.y
 			transform.update()
 
+			// Keep player in bounds
 			if (transform.x < 0) {
 				transform.x = 0
 				transform.update()
 			}
 		})
 
+		// Update camera to follow player
 		const playerEntityId = world.resources.playerEntity
 		if (playerEntityId) {
 			const playerTransform = world.getComponent(playerEntityId, 'Transform')

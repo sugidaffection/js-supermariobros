@@ -11,7 +11,7 @@ export function createMarioEntity(world, spritesheet) {
 
 	const entityId = world.createEntity({
 		Transform: new Rect(32, 320, 32, 32),
-		Velocity: { x: 0, y: 0, speed: 6, jump: -10, friction: 0.8, gravity: 1.5, mass: 1 },
+		Velocity: { x: 0, y: 0, speed: 5, jump: -11, friction: 0.85, gravity: 2.0, mass: 1 },
 		Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
 		Sprite: { animation: 'idle', flip: false },
 		Input: { up: false, left: false, right: false, jumpPressed: false },
