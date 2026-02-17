@@ -147,6 +147,25 @@ class Game {
 		const response = await fetch('assets/map.json')
 		const mapData = await response.json()
 		this.scene = new Scene(this.ctx, this.w, this.h, mapData)
+		
+		// Wait for all images to load
+		await this._waitForImages()
+	}
+
+	async _waitForImages() {
+		const spritesheets = [
+			this.scene.tilemap.tilesheet,
+			...this.scene.world.entities.values()
+				.filter(e => e.Sprite && e.Sprite.animation)
+				.map(e => e.Sprite.animation.sprites)
+		].flat()
+		
+		const promises = spritesheets
+			.filter(s => s instanceof Spritesheet)
+			.map(s => s.waitForLoad())
+		
+		await Promise.all(promises)
+		console.log('All images loaded')
 	}
 
 	run = (timeMs = 0) => {

@@ -9,14 +9,6 @@ class Sprite {
 	}
 
 	draw(ctx,{x,y,w,h},flip){
-
-		// this.image.decode().then(() => {
-		// 	w = this.image.width * w / this.image.width
-		// 	h = this.image.height * h / this.image.height
-
-			
-		// })
-
 		if(flip){
 			ctx.save()
 			ctx.scale(-1, 1)
@@ -25,9 +17,7 @@ class Sprite {
 		}else{
 			ctx.drawImage(this.image,this.x,this.y,this.w,this.h,x,y,w,h)
 		}
-
 	}
-
 }
 
 class Spritesheet {
@@ -55,6 +45,18 @@ class Spritesheet {
 	get_sprite(sprite){
 		return new Sprite(this.image, sprite)
 	}
+
+	isLoaded() {
+		return this.image.complete && this.image.naturalHeight !== 0
+	}
+
+	waitForLoad() {
+		if (this.isLoaded()) return Promise.resolve()
+		return new Promise((resolve, reject) => {
+			this.image.onload = resolve
+			this.image.onerror = reject
+		})
+	}
 }
 
 class SpriteAnimation {
@@ -63,7 +65,6 @@ class SpriteAnimation {
 		this.idx = 0
 		this.speed = .1
 		this.sprites = sprites
-		this.currentName = 'idle'
 	}
 
 	play(ctx, name, rect, flip){
