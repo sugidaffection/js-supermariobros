@@ -60,32 +60,20 @@ class Scene {
 			}
 
 			this.tilemap.solidsprites.forEach(obj => {
-				if(this.mario.rect.bottom + this.mario.vel.y > obj.rect.top &&
-					this.mario.rect.top < obj.rect.top &&
-					this.mario.rect.left + 1 < obj.rect.right &&
-					this.mario.rect.right - 1 > obj.rect.left){
+				if(this.mario.rect.willLandOn(obj.rect, this.mario.vel.y, 1)){
 						this.mario.vel.y = 0
 						this.mario.rect.y = obj.rect.top - this.mario.rect.h
 						this.mario.ground = true
 					}
-				else if(this.mario.rect.top + this.mario.vel.y < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.bottom &&
-					this.mario.rect.left + 1 < obj.rect.right &&
-					this.mario.rect.right - 1 > obj.rect.left){
+				else if(this.mario.rect.willHitHeadOn(obj.rect, this.mario.vel.y, 1)){
 						this.mario.rect.y = obj.rect.bottom
 						this.mario.vel.y = 1
 					}
-				if(this.mario.rect.right > obj.rect.left &&
-					this.mario.rect.left < obj.rect.left &&
-					this.mario.rect.top < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.top){
+				if(this.mario.rect.hitsLeftSideOf(obj.rect)){
 						this.mario.rect.x = obj.rect.left - this.mario.rect.w
 						this.mario.vel.x = 0
 					}
-				else if(this.mario.rect.left < obj.rect.right &&
-					this.mario.rect.right > obj.rect.right &&
-					this.mario.rect.top < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.top){
+				else if(this.mario.rect.hitsRightSideOf(obj.rect)){
 						this.mario.rect.x = obj.rect.right
 						this.mario.vel.x = 0
 					}
