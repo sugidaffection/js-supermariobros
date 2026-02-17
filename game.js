@@ -1,3 +1,5 @@
+const SKIN_WIDTH = 1
+
 class Scene {
 
 	constructor(ctx,w,h){
@@ -7,21 +9,20 @@ class Scene {
 		this.tilemap = null
 		this.ready = false
 		this.mario = new Mario()
-		this.mario.keyEvent()
+		this.input = new InputManager()
 		this.loop = false
 		this.music = [
 			'assets/main_theme.mp3',
 			'assets/level_complete.mp3'
 		]
-		this.idx = 0
 		this.sound = new Audio()
 		this.sound.volume = 0.1
-		
+		this.state = GameState.BOOT
+
 		document.querySelector('#play').addEventListener('click', ()=>{
 			document.querySelector('#play').style.display = 'none'
 			document.querySelector('#game').style.display = 'grid'
-			this.load_sound(true)
-			this.loop = true
+			this.setState(GameState.RUNNING)
 		})
 
 		this.win = false
@@ -33,9 +34,29 @@ class Scene {
 		this.ready = true
 	}
 
-	load_sound(loop=false){
-		this.sound.src = this.music[this.idx]
+	onEnter(state){
+		switch (state) {
+			case GameState.RUNNING:
+				this.load_sound(0, true)
+				break
+			case GameState.WIN:
+				this.load_sound(1, false)
+				break
+			case GameState.GAME_OVER:
+			case GameState.PAUSED:
+				this.sound.pause()
+				break
+			default:
+				break
+		}
+	}
+
+	load_sound(trackIdx,loop=false){
+		if(this.sound.src !== this.music[trackIdx]){
+			this.sound.src = this.music[trackIdx]
+		}
 		this.sound.loop = loop
+		this.sound.currentTime = 0
 		this.sound.play()
 	}
 
@@ -49,6 +70,9 @@ class Scene {
 	}
 
 	play(){
+		const moveRight = this.input.isDown(InputManager.ACTIONS.MOVE_RIGHT)
+		const moveLeft = this.input.isDown(InputManager.ACTIONS.MOVE_LEFT)
+
 		this.ctx.clearRect(0,0,this.w,this.h)
 		if(!this.ready){
 			return
@@ -57,14 +81,18 @@ class Scene {
 		this.tilemap.render(this.ctx)
 		this.mario.render(this.ctx)
 		if(this.loop){
-			this.mario.update(1/60)
+			const dt = 1 / 60
+			this.mario.update(dt)
+			this.mario.ground = false
+			const horizontalStep = this.mario.vel.x * dt
+
 			if(this.mario.controller.right){
 				if(this.mario.rect.right > this.w / 2){
 					this.tilemap.setCameraX(this.tilemap.cameraX + this.mario.vel.x)
 				}else{
-					this.mario.rect.x += this.mario.vel.x
+					this.mario.rect.x += horizontalStep
 				}
-			}else if(this.mario.controller.left){
+			}else if(moveLeft){
 				if(this.mario.vel.x < 0){
 					if(this.tilemap.cameraX > 0 && this.mario.rect.left <= this.w / 2){
 						this.tilemap.setCameraX(this.tilemap.cameraX + this.mario.vel.x)
@@ -73,6 +101,8 @@ class Scene {
 					}
 				}
 			}
+
+			this.mario.rect.update()
 
 			if(this.mario.rect.left < 0){
 				this.mario.rect.x = 0
@@ -127,14 +157,15 @@ class Scene {
 			this.win = true
 		}
 
-		if(this.win && this.idx == 0){
-			this.idx = 1
-			this.load_sound()
+		if(!this.loop && this.input.wasPressed(InputManager.ACTIONS.START)){
+			this.loop = true
 		}
+
+		this.input.update()
 	}
 
 	stop(){
-		this.loop = false
+		this.setState(GameState.PAUSED)
 	}
 
 }
