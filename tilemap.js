@@ -1,192 +1,210 @@
 class Tilemap {
 
-	constructor(w,h){
+	constructor(w, h) {
 		this.w = w
 		this.h = h
+		this.tileSize = 32
+		this.sectorSize = 8
+		this.cameraX = 0
+
 		const spritesheet = new Spritesheet('assets/tileset.png')
-		const map = [
+		this.spritesheet = spritesheet
+		this.spriteCache = new Map()
+
+		this.background = []
+		this.solidsprites = []
+		this.sectors = new Map()
+		this.objectives = []
+
+		this.chunkTemplates = []
+		this.repeatableTemplates = []
+		this.nextChunkStartColumn = 0
+		this.activeChunkCount = 0
+	}
+
+	static async fromJSON(w, h, level = '1_1', path = 'assets/map.json') {
+		const tilemap = new Tilemap(w, h)
+		const response = await fetch(path)
+		const mapData = await response.json()
+		tilemap.loadLevel(mapData, level)
+		return tilemap
+	}
+
+	getSprite(spriteDef) {
+		const key = spriteDef.join(',')
+		if (!this.spriteCache.has(key)) {
+			this.spriteCache.set(key, this.spritesheet.get_sprite([...spriteDef, ...[16, 16]]))
+		}
+		return this.spriteCache.get(key)
+	}
+
+	loadLevel(mapData, level) {
+		const levelData = mapData[level]
+		if (!levelData) {
+			throw new Error(`Unknown level: ${level}`)
+		}
+
+		const chunkDefs = levelData.chunks || [
 			{
-				"name" : "sky",
-				"sprite" : [3, 23],
-				"ranges" : [
-					[0,25,0,14]
-				]
-			},
-			{
-				"name" : "ground",
-				"sprite" : [0,0],
-				"ranges" : [
-					[0,50,12,14],
-					[52,67,12,14],
-					[70,130,12,14],
-					[132,200,12,14]
-				]
-			},
-			{
-				"name" : "brick",
-				"sprite" : [1,0],
-				"ranges" : [
-					[10,11,8,9],
-					[12,13,8,9],
-					[14,15,8,9],
-					[57,58,8,9],
-					[59,60,8,9],
-					[60,69,4,5],
-					[71,74,4,5],
-					[74,75,8,9],
-					[78,80,8,9],
-					[93,94,8,9],
-					[96,99,4,5],
-					[103,104,4,5],
-					[104,106,8,9],
-					[106,107,4,5],
-					[147,149,8,9],
-					[150,151,8,9]
-				]
-			},
-			{
-				"name" : "brick2",
-				"sprite" : [24,0],
-				"ranges" : [
-					[6,7,8,9],
-					[11,12,8,9],
-					[12,13,5,6],
-					[13,14,8,9],
-					[58,59,8,9],
-					[74,75,4,5],
-					[85,86,8,9],
-					[87,88,8,9],
-					[87,88,4,5],
-					[89,90,8,9],
-					[104,106,4,5],
-					[149,150,8,9]
-				]
-			},
-			{
-				"name" : "brick3",
-				"sprite" : [0,1],
-				"ranges" : [
-					[110,114,11,12],
-					[111,114,10,11],
-					[112,114,9,10],
-					[113,114,8,9],
-					[116,117,8,9],
-					[116,118,9,10],
-					[116,119,10,11],
-					[116,120,11,12],
-					[125,130,11,12],
-					[126,130,10,11],
-					[127,130,9,10],
-					[128,130,8,9],
-					[132,133,8,9],
-					[132,134,9,10],
-					[132,135,10,11],
-					[132,136,11,12],
-					[159,168,11,12],
-					[160,168,10,11],
-					[161,168,9,10],
-					[162,168,8,9],
-					[163,168,7,8],
-					[164,168,6,7],
-					[165,168,5,6],
-					[166,168,4,5]
-				]
-			},
-			{
-				"name" : "pipe_topleft",
-				"sprite" : [0,8],
-				"ranges" : [
-					[17, 18, 10, 11],
-					[23, 24, 9, 10],
-					[30, 31, 8, 9],
-					[38, 39, 8, 9],
-					[141,142,10,11],
-					[157,158,10,11]
-				]
-			},
-			{
-				"name" : "pipe_topright",
-				"sprite" : [1,8],
-				"ranges" : [
-					[18, 19, 10, 11],
-					[24, 25, 9, 10],
-					[31, 32, 8, 9],
-					[39, 40, 8, 9],
-					[142,143,10,11],
-					[158,159,10,11]
-				]
-			},
-			{
-				"name" : "pipe_bottomleft",
-				"sprite" : [0,9],
-				"ranges" : [
-					[17, 18, 11, 12],
-					[23, 24, 10, 12],
-					[30, 31, 9, 12],
-					[38, 39, 9, 12],
-					[141,142,11,12],
-					[157,158,11,12]
-				]
-			},
-			{
-				"name" : "pipe_bottomright",
-				"sprite" : [1,9],
-				"ranges" : [
-					[18, 19, 11, 12],
-					[24, 25, 10, 12],
-					[31, 32, 9, 12],
-					[39, 40, 9, 12],
-					[142,143,11,12],
-					[158,159,11,12]
-				]
+				id: `${level}_legacy`,
+				startColumn: 0,
+				repeat: false,
+				tiles: levelData.backgrounds || []
 			}
 		]
 
-		this.solidsprites = []
-		this.background = []
-		this.x = 0
+		this.chunkTemplates = chunkDefs
+		this.repeatableTemplates = chunkDefs.filter(chunk => chunk.repeat)
+		this.objectives = (levelData.objectives || []).map(objective => ({ ...objective, reached: false }))
 
-		map.forEach(tiles => {
-			const sprite = spritesheet.get_sprite([...tiles.sprite, ...[16,16]])
+		chunkDefs
+			.filter(chunk => !chunk.repeat)
+			.sort((a, b) => (a.startColumn || 0) - (b.startColumn || 0))
+			.forEach(chunk => this.instantiateChunk(chunk, chunk.startColumn || 0))
+
+		this.activeChunkCount = chunkDefs.filter(chunk => !chunk.repeat).length
+		this.nextChunkStartColumn = this.getRightmostLoadedColumn()
+	}
+
+	instantiateChunk(chunkTemplate, startColumn) {
+		const tileGroups = chunkTemplate.tiles || chunkTemplate.backgrounds || []
+
+		tileGroups.forEach(tiles => {
+			const sprite = this.getSprite(tiles.sprite)
+			const isSky = tiles.name === 'sky'
 			tiles.ranges.forEach(range => {
-				for(let x = range[0]; x<range[1]; x++){
-					for(let y = range[2]; y<range[3]; y++){
-						if(tiles.name == 'sky'){
-							this.background.push({
-								sprite : sprite,
-								rect: new Rect(x*32,y*32,32,32)
-							})
-						}else{
-							this.solidsprites.push({
-								sprite : sprite,
-								rect: new Rect(x*32,y*32,32,32)
-							})
+				for (let x = range[0]; x < range[1]; x++) {
+					for (let y = range[2]; y < range[3]; y++) {
+						const column = x + startColumn
+						const tile = {
+							sprite,
+							name: tiles.name,
+							worldRect: new Rect(column * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize),
+							column
 						}
+
+						if (isSky) {
+							this.background.push(tile)
+						} else {
+							this.solidsprites.push(tile)
+						}
+
+						this.addToSector(tile, isSky ? 'background' : 'solid')
 					}
 				}
 			})
 		})
 	}
 
-	render(ctx){
-		this.background
-			.filter(obj => obj.rect.right <= this.w + 32 && obj.rect.bottom <= this.h + 32)
-			.forEach(obj => {
-				obj.sprite.draw(ctx, obj.rect, false)
-			})
-		this.solidsprites
-			.filter(obj => obj.rect.right <= this.w + 32 && obj.rect.bottom <= this.h + 32)
-			.forEach(obj => {
-				obj.sprite.draw(ctx, obj.rect, false)
-			})
+	addToSector(tile, type) {
+		const sector = Math.floor(tile.column / this.sectorSize)
+		if (!this.sectors.has(sector)) {
+			this.sectors.set(sector, { background: [], solid: [] })
+		}
+		this.sectors.get(sector)[type].push(tile)
 	}
 
-	update(speed){
-		this.solidsprites
-			.forEach(obj => {
-				obj.rect.x -= speed
-				obj.rect.update()
+	getRightmostLoadedColumn() {
+		if (this.solidsprites.length === 0 && this.background.length === 0) {
+			return 0
+		}
+		const rightmostTile = [...this.solidsprites, ...this.background]
+			.reduce((maxCol, tile) => Math.max(maxCol, tile.column), 0)
+		return rightmostTile + 1
+	}
+
+	ensureChunksForCamera() {
+		if (this.repeatableTemplates.length === 0) {
+			return
+		}
+
+		const preloadColumns = Math.ceil(this.w / this.tileSize) + this.sectorSize * 2
+		const cameraRightColumn = Math.floor((this.cameraX + this.w) / this.tileSize)
+		while (this.nextChunkStartColumn < cameraRightColumn + preloadColumns) {
+			const template = this.repeatableTemplates[this.activeChunkCount % this.repeatableTemplates.length]
+			this.instantiateChunk(template, this.nextChunkStartColumn)
+			const templateWidth = template.width || this.computeChunkWidth(template)
+			this.nextChunkStartColumn += templateWidth
+			this.activeChunkCount += 1
+		}
+	}
+
+	computeChunkWidth(chunkTemplate) {
+		const groups = chunkTemplate.tiles || []
+		let max = 0
+		groups.forEach(group => {
+			group.ranges.forEach(range => {
+				max = Math.max(max, range[1])
 			})
+		})
+		return max
+	}
+
+	queryVisibleTiles(type) {
+		const leftSector = Math.floor(this.cameraX / (this.sectorSize * this.tileSize))
+		const rightSector = Math.floor((this.cameraX + this.w) / (this.sectorSize * this.tileSize))
+		const tiles = []
+
+		for (let sector = leftSector - 1; sector <= rightSector + 1; sector++) {
+			if (this.sectors.has(sector)) {
+				tiles.push(...this.sectors.get(sector)[type])
+			}
+		}
+
+		return tiles
+	}
+
+	querySolidsByWorldRect(worldRect) {
+		const leftSector = Math.floor(worldRect.left / (this.sectorSize * this.tileSize))
+		const rightSector = Math.floor(worldRect.right / (this.sectorSize * this.tileSize))
+		const solids = []
+
+		for (let sector = leftSector - 1; sector <= rightSector + 1; sector++) {
+			if (this.sectors.has(sector)) {
+				solids.push(...this.sectors.get(sector).solid)
+			}
+		}
+
+		return solids
+	}
+
+	render(ctx) {
+		this.ensureChunksForCamera()
+		const backgroundTiles = this.queryVisibleTiles('background')
+		const solidTiles = this.queryVisibleTiles('solid')
+
+		backgroundTiles.forEach(tile => {
+			const screenX = tile.worldRect.x - this.cameraX
+			if (screenX + this.tileSize >= 0 && screenX <= this.w) {
+				tile.sprite.draw(ctx, { x: screenX, y: tile.worldRect.y, w: this.tileSize, h: this.tileSize }, false)
+			}
+		})
+
+		solidTiles.forEach(tile => {
+			const screenX = tile.worldRect.x - this.cameraX
+			if (screenX + this.tileSize >= 0 && screenX <= this.w) {
+				tile.sprite.draw(ctx, { x: screenX, y: tile.worldRect.y, w: this.tileSize, h: this.tileSize }, false)
+			}
+		})
+	}
+
+	setCameraX(nextCameraX) {
+		this.cameraX = Math.max(0, nextCameraX)
+	}
+
+	getFirstObjective(type) {
+		return this.objectives.find(objective => objective.type === type)
+	}
+
+	isObjectiveReached(type, worldX) {
+		const objective = this.getFirstObjective(type)
+		if (!objective) {
+			return false
+		}
+		if (worldX >= objective.worldX) {
+			objective.reached = true
+		}
+		return objective.reached
 	}
 
 }

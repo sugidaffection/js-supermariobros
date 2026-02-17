@@ -4,7 +4,8 @@ class Scene {
 		this.ctx = ctx
 		this.w = w
 		this.h = h
-		this.tilemap = new Tilemap(w,h)
+		this.tilemap = null
+		this.ready = false
 		this.mario = new Mario()
 		this.mario.keyEvent()
 		this.loop = false
@@ -24,6 +25,12 @@ class Scene {
 		})
 
 		this.win = false
+		this.loadLevel()
+	}
+
+	async loadLevel(){
+		this.tilemap = await Tilemap.fromJSON(this.w, this.h, '1_1')
+		this.ready = true
 	}
 
 	load_sound(loop=false){
@@ -32,22 +39,38 @@ class Scene {
 		this.sound.play()
 	}
 
+	getMarioWorldRect(){
+		return new Rect(
+			this.mario.rect.x + this.tilemap.cameraX,
+			this.mario.rect.y,
+			this.mario.rect.w,
+			this.mario.rect.h
+		)
+	}
+
 	play(){
 		this.ctx.clearRect(0,0,this.w,this.h)
+		if(!this.ready){
+			return
+		}
+
 		this.tilemap.render(this.ctx)
 		this.mario.render(this.ctx)
 		if(this.loop){
 			this.mario.update(1/60)
 			if(this.mario.controller.right){
-				if(this.tilemap.x < 1200 && this.mario.rect.right > this.w / 2){
-					this.tilemap.update(this.mario.vel.x)
-					this.tilemap.x += 1
+				if(this.mario.rect.right > this.w / 2){
+					this.tilemap.setCameraX(this.tilemap.cameraX + this.mario.vel.x)
 				}else{
 					this.mario.rect.x += this.mario.vel.x
 				}
 			}else if(this.mario.controller.left){
 				if(this.mario.vel.x < 0){
-					this.mario.rect.x += this.mario.vel.x
+					if(this.tilemap.cameraX > 0 && this.mario.rect.left <= this.w / 2){
+						this.tilemap.setCameraX(this.tilemap.cameraX + this.mario.vel.x)
+					}else{
+						this.mario.rect.x += this.mario.vel.x
+					}
 				}
 			}
 
@@ -59,43 +82,48 @@ class Scene {
 				this.mario.rect.x = this.w - this.mario.rect.w
 			}
 
-			this.tilemap.solidsprites.forEach(obj => {
-				if(this.mario.rect.bottom + this.mario.vel.y > obj.rect.top &&
-					this.mario.rect.top < obj.rect.top &&
-					this.mario.rect.left + 1 < obj.rect.right &&
-					this.mario.rect.right - 1 > obj.rect.left){
+			const marioWorldRect = this.getMarioWorldRect()
+			const nearbySolids = this.tilemap.querySolidsByWorldRect(marioWorldRect)
+
+			nearbySolids.forEach(obj => {
+				if(marioWorldRect.bottom + this.mario.vel.y > obj.worldRect.top &&
+					marioWorldRect.top < obj.worldRect.top &&
+					marioWorldRect.left + 1 < obj.worldRect.right &&
+					marioWorldRect.right - 1 > obj.worldRect.left){
 						this.mario.vel.y = 0
-						this.mario.rect.y = obj.rect.top - this.mario.rect.h
+						this.mario.rect.y = obj.worldRect.top - this.mario.rect.h
 						this.mario.ground = true
-					}
-				else if(this.mario.rect.top + this.mario.vel.y < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.bottom &&
-					this.mario.rect.left + 1 < obj.rect.right &&
-					this.mario.rect.right - 1 > obj.rect.left){
-						this.mario.rect.y = obj.rect.bottom
+				}
+				else if(marioWorldRect.top + this.mario.vel.y < obj.worldRect.bottom &&
+					marioWorldRect.bottom > obj.worldRect.bottom &&
+					marioWorldRect.left + 1 < obj.worldRect.right &&
+					marioWorldRect.right - 1 > obj.worldRect.left){
+						this.mario.rect.y = obj.worldRect.bottom
 						this.mario.vel.y = 1
-					}
-				if(this.mario.rect.right > obj.rect.left &&
-					this.mario.rect.left < obj.rect.left &&
-					this.mario.rect.top < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.top){
-						this.mario.rect.x = obj.rect.left - this.mario.rect.w
+				}
+				if(marioWorldRect.right > obj.worldRect.left &&
+					marioWorldRect.left < obj.worldRect.left &&
+					marioWorldRect.top < obj.worldRect.bottom &&
+					marioWorldRect.bottom > obj.worldRect.top){
+						const screenX = obj.worldRect.left - this.tilemap.cameraX
+						this.mario.rect.x = screenX - this.mario.rect.w
 						this.mario.vel.x = 0
-					}
-				else if(this.mario.rect.left < obj.rect.right &&
-					this.mario.rect.right > obj.rect.right &&
-					this.mario.rect.top < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.top){
-						this.mario.rect.x = obj.rect.right
+				}
+				else if(marioWorldRect.left < obj.worldRect.right &&
+					marioWorldRect.right > obj.worldRect.right &&
+					marioWorldRect.top < obj.worldRect.bottom &&
+					marioWorldRect.bottom > obj.worldRect.top){
+						const screenX = obj.worldRect.right - this.tilemap.cameraX
+						this.mario.rect.x = screenX
 						this.mario.vel.x = 0
-					}
+				}
 			})
 
 			this.mario.rect.y += this.mario.vel.y
-
 		}
 
-		if(this.tilemap.x == 1200){
+		const marioWorldX = this.mario.rect.centerx + this.tilemap.cameraX
+		if(this.tilemap.isObjectiveReached('win', marioWorldX)){
 			this.win = true
 		}
 
