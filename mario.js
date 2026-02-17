@@ -6,18 +6,19 @@ function createMarioEntity(world, spritesheet) {
 		jump: [[10.3, 2.13, 16, 16]]
 	})
 
-	return world.createEntity({
-		tag: { type: 'player' },
-		transform: { rect: new Rect(32, 320, 32, 32), flip: false },
-		physics: { vel: new Vector2(), acc: new Vector2(), speed: 8, jump: -12, gravity: 42, drag: 16, grounded: false },
-		sprite: { animation: new SpriteAnimation(sprites), state: 'idle' },
-		fsm: new StateMachine('idle', {
-			idle: ['run', 'jump'],
-			run: ['idle', 'turn', 'jump'],
-			turn: ['run', 'idle', 'jump'],
-			jump: ['idle', 'run']
-		})
+	const entityId = world.createEntity({
+		Transform: { x: 32, y: 320, w: 32, h: 32, grounded: false },
+		Velocity: { x: 0, y: 0, speed: 8, jump: -12, friction: 16, gravity: 42, mass: 1 },
+		Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
+		Sprite: { animation: new SpriteAnimation(sprites), flip: false },
+		Input: { up: false, left: false, right: false, jumpPressed: false },
+		State: { value: 'idle', facing: 'right', won: false }
 	})
+
+	world.resources.playerEntity = entityId
+	world.resources.animations.set(entityId, new SpriteAnimation(sprites))
+
+	return entityId
 }
 
 function createEnemyEntities(world, spriteSheet, mapEnemies) {
@@ -27,12 +28,15 @@ function createEnemyEntities(world, spriteSheet, mapEnemies) {
 
 	mapEnemies.forEach((enemyDef) => {
 		enemyDef.position.forEach((pos) => {
-			world.createEntity({
-				tag: { type: 'enemy' },
-				transform: { rect: new Rect(pos[0] * 32, pos[1] * 32, 32, 32), flip: true },
-				physics: { vel: new Vector2(-2, 0), acc: new Vector2(), speed: 2, jump: 0, gravity: 42, drag: 0, grounded: false },
-				sprite: { animation: new SpriteAnimation(sprites), state: 'walk' }
+			const entityId = world.createEntity({
+				Transform: { x: pos[0] * 32, y: pos[1] * 32, w: 32, h: 32, grounded: false },
+				Velocity: { x: -2, y: 0, speed: 2, jump: 0, friction: 0, gravity: 42, mass: 1 },
+				Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
+				Sprite: { animation: new SpriteAnimation(sprites), flip: true },
+				Input: { up: false, left: false, right: false, jumpPressed: false },
+				State: { value: 'walk', facing: 'left', won: false }
 			})
+			world.resources.animations.set(entityId, new SpriteAnimation(sprites))
 		})
 	})
 }

@@ -45,6 +45,12 @@ class Tilemap {
 		})
 	}
 
+	populateCollisionGrid(grid) {
+		this.solids.forEach(tile => {
+			grid.insert(tile.rect)
+		})
+	}
+
 	querySolids(rect) {
 		const minChunk = Math.floor(rect.left / this.chunkPx) - 1
 		const maxChunk = Math.floor(rect.right / this.chunkPx) + 1

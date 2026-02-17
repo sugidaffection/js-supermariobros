@@ -2,11 +2,11 @@ class AnimationSystem {
 	update(world) {
 		const entities = world.query(['Transform', 'Velocity', 'Sprite', 'State', 'Input'])
 		entities.forEach(entity => {
-			const transform = world.getComponent(entity, 'Transform')
-			const velocity = world.getComponent(entity, 'Velocity')
-			const sprite = world.getComponent(entity, 'Sprite')
-			const state = world.getComponent(entity, 'State')
-			const input = world.getComponent(entity, 'Input')
+			const transform = world.getComponent(entity.id, 'Transform')
+			const velocity = world.getComponent(entity.id, 'Velocity')
+			const sprite = world.getComponent(entity.id, 'Sprite')
+			const state = world.getComponent(entity.id, 'State')
+			const input = world.getComponent(entity.id, 'Input')
 
 			sprite.flip = state.facing === 'left'
 			if (!transform.grounded) {

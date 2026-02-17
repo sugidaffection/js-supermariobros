@@ -3,23 +3,23 @@ class CollisionSystem {
 		const grid = world.resources.collisionGrid
 		const entities = world.query(['Transform', 'Velocity', 'Collider'])
 		entities.forEach(entity => {
-			const transform = world.getComponent(entity, 'Transform')
-			const velocity = world.getComponent(entity, 'Velocity')
-			const collider = world.getComponent(entity, 'Collider')
+			const transform = world.getComponent(entity.id, 'Transform')
+			const velocity = world.getComponent(entity.id, 'Velocity')
+			const collider = world.getComponent(entity.id, 'Collider')
 			if (collider.type !== 'dynamic' || !collider.solid) return
 
 			transform.grounded = false
 			const potentialTiles = grid.query(transform)
 			potentialTiles.forEach(tile => {
 				const rect = tile.rect
-				if (transform.y + transform.h + velocity.y > rect.top &&
+				if (transform.y + transform.h + velocity.y * 60 > rect.top &&
 					transform.y < rect.top &&
 					transform.x + 1 < rect.right &&
 					transform.x + transform.w - 1 > rect.left) {
 					velocity.y = 0
 					transform.y = rect.top - transform.h
 					transform.grounded = true
-				} else if (transform.y + velocity.y < rect.bottom &&
+				} else if (transform.y + velocity.y * 60 < rect.bottom &&
 					transform.y + transform.h > rect.bottom &&
 					transform.x + 1 < rect.right &&
 					transform.x + transform.w - 1 > rect.left) {

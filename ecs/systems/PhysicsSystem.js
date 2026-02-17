@@ -2,12 +2,13 @@ class PhysicsSystem {
 	update(world, dt) {
 		const entities = world.query(['Transform', 'Velocity', 'Input'])
 		entities.forEach(entity => {
-			const transform = world.getComponent(entity, 'Transform')
-			const velocity = world.getComponent(entity, 'Velocity')
-			const input = world.getComponent(entity, 'Input')
+			const transform = world.getComponent(entity.id, 'Transform')
+			const velocity = world.getComponent(entity.id, 'Velocity')
+			const input = world.getComponent(entity.id, 'Input')
 
 			let accX = 0
-			let accY = velocity.mass
+			let accY = velocity.gravity
+
 			if (input.right) accX = velocity.speed
 			if (input.left) accX = -velocity.speed
 
@@ -22,15 +23,15 @@ class PhysicsSystem {
 				transform.grounded = false
 			}
 
-			transform.x += velocity.x
-			transform.y += velocity.y
+			transform.x += velocity.x * dt * 60
+			transform.y += velocity.y * dt
 
 			if (transform.x < 0) transform.x = 0
 		})
 
-		const player = world.getComponent(world.resources.playerEntity, 'Transform')
+		const playerTransform = world.getComponent(world.resources.playerEntity, 'Transform')
 		const camera = world.resources.camera
 		const halfViewport = camera.viewportWidth / 2
-		camera.x = Math.max(0, Math.min(camera.maxX, player.x - halfViewport))
+		camera.x = Math.max(0, Math.min(camera.maxX, playerTransform.x - halfViewport))
 	}
 }

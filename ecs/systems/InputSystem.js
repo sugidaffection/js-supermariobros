@@ -20,8 +20,8 @@ class InputSystem {
 		const keys = world.resources.input.keys
 		const entities = world.query(['Input', 'State'])
 		entities.forEach(entity => {
-			const input = world.getComponent(entity, 'Input')
-			const state = world.getComponent(entity, 'State')
+			const input = world.getComponent(entity.id, 'Input')
+			const state = world.getComponent(entity.id, 'State')
 			input.up = !!keys[32]
 			input.left = !!keys[37]
 			input.right = !!keys[39]
