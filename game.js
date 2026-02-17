@@ -1,3 +1,5 @@
+const SKIN_WIDTH = 1
+
 class Scene {
 
 	constructor(ctx,w,h){
@@ -5,31 +7,43 @@ class Scene {
 		this.w = w
 		this.h = h
 		this.tilemap = new Tilemap(w,h)
-		this.mario = new Mario()
-		this.mario.keyEvent()
 		this.loop = false
 		this.music = [
 			'assets/main_theme.mp3',
 			'assets/level_complete.mp3'
 		]
-		this.idx = 0
 		this.sound = new Audio()
 		this.sound.volume = 0.1
-		
+
+		this.world = this.createWorld()
+		this.bootstrapECS()
+
 		document.querySelector('#play').addEventListener('click', ()=>{
 			document.querySelector('#play').style.display = 'none'
 			document.querySelector('#game').style.display = 'grid'
-			this.load_sound(true)
 			this.loop = true
+			this.world.resources.game.loop = true
+			if (!this.world.resources.audio.switchedToWinTheme) {
+				this.sound.src = this.music[0]
+				this.sound.loop = true
+				this.sound.play()
+			}
 		})
-
-		this.win = false
 	}
 
-	load_sound(loop=false){
-		this.sound.src = this.music[this.idx]
-		this.sound.loop = loop
-		this.sound.play()
+	createWorld() {
+		const world = new World()
+		world.resources.ctx = this.ctx
+		world.resources.viewport = { w: this.w, h: this.h }
+		world.resources.tilemap = this.tilemap
+		world.resources.music = this.music
+		world.resources.sound = this.sound
+		world.resources.ui = { playButton: document.querySelector('#play') }
+		world.resources.input = { keys: {} }
+		world.resources.animations = new Map()
+		world.resources.camera = { x: 0, maxX: 1200, viewportWidth: this.w }
+		world.resources.collisionGrid = new StaticCollisionGrid(32)
+		return world
 	}
 
 	play(){
@@ -81,20 +95,29 @@ class Scene {
 
 			this.mario.rect.y += this.mario.vel.y
 
+	getMarioWorldRect(){
+		return new Rect(
+			this.mario.rect.x + this.tilemap.cameraX,
+			this.mario.rect.y,
+			this.mario.rect.w,
+			this.mario.rect.h
+		)
+	}
+
+	play(){
+		if (this.loop) {
+			this.world.update(1/60)
+		} else {
+			this.world.getStore('Transform') // keep world initialized
+			new RenderSystem().update(this.world)
 		}
 
-		if(this.tilemap.x == 1200){
-			this.win = true
-		}
-
-		if(this.win && this.idx == 0){
-			this.idx = 1
-			this.load_sound()
-		}
+		this.input.update()
 	}
 
 	stop(){
 		this.loop = false
+		this.world.resources.game.loop = false
 	}
 
 }
