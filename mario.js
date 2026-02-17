@@ -34,9 +34,31 @@ class Mario {
 		this.mass = 25
 		this.speed = 8
 		this.jump = -10
-		this.animation = 'turn'
+		this.state = PlayerState.IDLE
 		this.ground = false
-		this.win = false
+	}
+
+	setState(nextState){
+		if(this.state === nextState){
+			return
+		}
+		this.state = nextState
+	}
+
+	getAnimation(){
+		switch (this.state) {
+			case PlayerState.RUN:
+				return 'walk'
+			case PlayerState.JUMP:
+			case PlayerState.FALL:
+				return 'jump'
+			case PlayerState.TURN:
+			case PlayerState.HURT:
+				return 'turn'
+			case PlayerState.IDLE:
+			default:
+				return 'idle'
+		}
 	}
 
 	update(dt,input){
@@ -73,15 +95,21 @@ class Mario {
 			if((movingLeft && this.vel.x > 0) || (movingRight && this.vel.x < 0)){
 				this.animation = 'turn'
 			}else{
-				this.animation = 'walk'
+				this.setState(PlayerState.FALL)
 			}
+		}else if(!this.controller.right && !this.controller.left){
+			this.setState(PlayerState.IDLE)
+		}else if((this.controller.left && this.vel.x > 0) || (this.controller.right && this.vel.x < 0)){
+			this.setState(PlayerState.TURN)
+		}else{
+			this.setState(PlayerState.RUN)
 		}
 
 		this.spriteanimation.speed = this.speed * dt
 	}
 
 	render(ctx){
-		this.spriteanimation.play(ctx, this.animation, this.rect, this.flip)
+		this.spriteanimation.play(ctx, this.getAnimation(), this.rect, this.flip)
 	}
 
 }

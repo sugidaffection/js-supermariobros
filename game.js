@@ -12,23 +12,52 @@ class Scene {
 			'assets/main_theme.mp3',
 			'assets/level_complete.mp3'
 		]
-		this.idx = 0
 		this.sound = new Audio()
 		this.sound.volume = 0.1
-		
+		this.state = GameState.BOOT
+
 		document.querySelector('#play').addEventListener('click', ()=>{
 			document.querySelector('#play').style.display = 'none'
 			document.querySelector('#game').style.display = 'grid'
-			this.load_sound(true)
-			this.loop = true
+			this.setState(GameState.RUNNING)
 		})
 
-		this.win = false
+		this.setState(GameState.READY)
 	}
 
-	load_sound(loop=false){
-		this.sound.src = this.music[this.idx]
+	setState(nextState){
+		if(this.state === nextState){
+			return
+		}
+
+		const prevState = this.state
+		this.state = nextState
+		this.onEnter(nextState, prevState)
+	}
+
+	onEnter(state){
+		switch (state) {
+			case GameState.RUNNING:
+				this.load_sound(0, true)
+				break
+			case GameState.WIN:
+				this.load_sound(1, false)
+				break
+			case GameState.GAME_OVER:
+			case GameState.PAUSED:
+				this.sound.pause()
+				break
+			default:
+				break
+		}
+	}
+
+	load_sound(trackIdx,loop=false){
+		if(this.sound.src !== this.music[trackIdx]){
+			this.sound.src = this.music[trackIdx]
+		}
 		this.sound.loop = loop
+		this.sound.currentTime = 0
 		this.sound.play()
 	}
 
@@ -66,6 +95,10 @@ class Scene {
 				this.mario.rect.x = this.w - this.mario.rect.w
 			}
 
+			// Reset grounded state before collision checks so Mario can't
+			// keep jumping after walking off an edge.
+			this.mario.ground = false
+
 			this.tilemap.solidsprites.forEach(obj => {
 				if(this.mario.rect.bottom + this.mario.vel.y > obj.rect.top &&
 					this.mario.rect.top < obj.rect.top &&
@@ -74,41 +107,39 @@ class Scene {
 						this.mario.vel.y = 0
 						this.mario.rect.y = obj.rect.top - this.mario.rect.h
 						this.mario.ground = true
-					}
+				}
 				else if(this.mario.rect.top + this.mario.vel.y < obj.rect.bottom &&
 					this.mario.rect.bottom > obj.rect.bottom &&
 					this.mario.rect.left + 1 < obj.rect.right &&
 					this.mario.rect.right - 1 > obj.rect.left){
 						this.mario.rect.y = obj.rect.bottom
 						this.mario.vel.y = 1
-					}
+				}
 				if(this.mario.rect.right > obj.rect.left &&
 					this.mario.rect.left < obj.rect.left &&
 					this.mario.rect.top < obj.rect.bottom &&
 					this.mario.rect.bottom > obj.rect.top){
 						this.mario.rect.x = obj.rect.left - this.mario.rect.w
 						this.mario.vel.x = 0
-					}
+				}
 				else if(this.mario.rect.left < obj.rect.right &&
 					this.mario.rect.right > obj.rect.right &&
 					this.mario.rect.top < obj.rect.bottom &&
 					this.mario.rect.bottom > obj.rect.top){
 						this.mario.rect.x = obj.rect.right
 						this.mario.vel.x = 0
-					}
+				}
 			})
 
 			this.mario.rect.y += this.mario.vel.y
-
 		}
 
-		if(this.tilemap.x == 1200){
-			this.win = true
+		if(this.state === GameState.RUNNING && this.tilemap.x === 1200){
+			this.setState(GameState.WIN)
 		}
 
-		if(this.win && this.idx == 0){
-			this.idx = 1
-			this.load_sound()
+		if(this.state === GameState.RUNNING && this.mario.rect.top > this.h){
+			this.setState(GameState.GAME_OVER)
 		}
 
 		if(!this.loop && this.input.wasPressed(InputManager.ACTIONS.START)){
@@ -119,7 +150,7 @@ class Scene {
 	}
 
 	stop(){
-		this.loop = false
+		this.setState(GameState.PAUSED)
 	}
 
 }
