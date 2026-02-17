@@ -80,7 +80,7 @@ class Mario {
 		}
 
 		this.acc.add(this.vel.x * -this.frict, this.vel.y * this.grav)
-		this.vel.add(this.acc.x * dt, this.acc.y * dt)
+		this.integrateVelocity(dt)
 
 		if (this.ground && jumping){
 			this.vel.y = this.jump
@@ -108,6 +108,10 @@ class Mario {
 		this.spriteanimation.speed = this.speed * dt
 	}
 
+
+	integrateVelocity(dt){
+		this.vel.add(this.acc.x * dt, this.acc.y * dt)
+	}
 	render(ctx){
 		this.spriteanimation.play(ctx, this.getAnimation(), this.rect, this.flip)
 	}

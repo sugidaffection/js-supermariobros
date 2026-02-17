@@ -93,3 +93,15 @@ class Collider{
 	}
 
 }
+
+function intersects(a, b) {
+	return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+}
+
+function overlapsOnX(a, b, skinWidth = 0) {
+	return a.left + skinWidth < b.right && a.right - skinWidth > b.left
+}
+
+function overlapsOnY(a, b, skinWidth = 0) {
+	return a.top + skinWidth < b.bottom && a.bottom - skinWidth > b.top
+}
