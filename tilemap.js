@@ -96,45 +96,28 @@ class Tilemap {
 		})
 	}
 
-	addToSector(tile, type) {
-		const sector = Math.floor(tile.column / this.sectorSize)
-		if (!this.sectors.has(sector)) {
-			this.sectors.set(sector, { background: [], solid: [] })
-		}
-		this.sectors.get(sector)[type].push(tile)
+	render(ctx, cameraX=0){
+		this.background
+			.filter(obj => obj.rect.right - cameraX >= -32 && obj.rect.left - cameraX <= this.w + 32 && obj.rect.bottom <= this.h + 32)
+			.forEach(obj => {
+				obj.sprite.draw(ctx, new Rect(obj.rect.x - cameraX, obj.rect.y, obj.rect.w, obj.rect.h), false)
+			})
+		this.solidsprites
+			.filter(obj => obj.rect.right - cameraX >= -32 && obj.rect.left - cameraX <= this.w + 32 && obj.rect.bottom <= this.h + 32)
+			.forEach(obj => {
+				obj.sprite.draw(ctx, new Rect(obj.rect.x - cameraX, obj.rect.y, obj.rect.w, obj.rect.h), false)
+			})
 	}
 
-	getRightmostLoadedColumn() {
-		if (this.solidsprites.length === 0 && this.background.length === 0) {
-			return 0
-		}
-		const rightmostTile = [...this.solidsprites, ...this.background]
-			.reduce((maxCol, tile) => Math.max(maxCol, tile.column), 0)
-		return rightmostTile + 1
+	buildCollisionGrid(grid) {
+		this.solidsprites.forEach(obj => grid.insert(obj.rect))
 	}
 
-	ensureChunksForCamera() {
-		if (this.repeatableTemplates.length === 0) {
-			return
-		}
-
-		const preloadColumns = Math.ceil(this.w / this.tileSize) + this.sectorSize * 2
-		const cameraRightColumn = Math.floor((this.cameraX + this.w) / this.tileSize)
-		while (this.nextChunkStartColumn < cameraRightColumn + preloadColumns) {
-			const template = this.repeatableTemplates[this.activeChunkCount % this.repeatableTemplates.length]
-			this.instantiateChunk(template, this.nextChunkStartColumn)
-			const templateWidth = template.width || this.computeChunkWidth(template)
-			this.nextChunkStartColumn += templateWidth
-			this.activeChunkCount += 1
-		}
-	}
-
-	computeChunkWidth(chunkTemplate) {
-		const groups = chunkTemplate.tiles || []
-		let max = 0
-		groups.forEach(group => {
-			group.ranges.forEach(range => {
-				max = Math.max(max, range[1])
+	update(speed){
+		this.solidsprites
+			.forEach(obj => {
+				obj.rect.x -= speed
+				obj.rect.update()
 			})
 		})
 		return max
