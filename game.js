@@ -46,39 +46,54 @@ class Scene {
 		return world
 	}
 
-	bootstrapECS() {
-		;['Transform', 'Velocity', 'Collider', 'Sprite', 'Input', 'State'].forEach(name => this.world.registerComponent(name))
+	play(){
+		this.ctx.clearRect(0,0,this.w,this.h)
+		this.tilemap.render(this.ctx)
+		this.mario.render(this.ctx)
+		if(this.loop){
+			this.mario.update(1/60)
+			if(this.mario.controller.right){
+				if(this.tilemap.x < 1200 && this.mario.rect.right > this.w / 2){
+					this.tilemap.update(this.mario.vel.x)
+					this.tilemap.x += 1
+				}else{
+					this.mario.rect.x += this.mario.vel.x
+				}
+			}else if(this.mario.controller.left){
+				if(this.mario.vel.x < 0){
+					this.mario.rect.x += this.mario.vel.x
+				}
+			}
 
-		// Sprint 2: static collision grid now replaces ad-hoc tile collider loops.
-		this.tilemap.buildCollisionGrid(this.world.resources.collisionGrid)
+			if(this.mario.rect.left < 0){
+				this.mario.rect.x = 0
+			}
 
-		// Sprint 1: Mario is now represented as an ECS entity.
-		const marioEntity = this.world.createEntity()
-		this.world.resources.playerEntity = marioEntity
-		this.world.addComponent(marioEntity, 'Transform', ECSComponents.Transform(10, 10 * 32, 32, 32))
-		this.world.addComponent(marioEntity, 'Velocity', ECSComponents.Velocity())
-		this.world.addComponent(marioEntity, 'Collider', ECSComponents.Collider('dynamic', true))
-		this.world.addComponent(marioEntity, 'Sprite', ECSComponents.Sprite('turn', false))
-		this.world.addComponent(marioEntity, 'Input', ECSComponents.Input())
-		this.world.addComponent(marioEntity, 'State', ECSComponents.State('turn'))
+			if(this.mario.rect.right > this.w){
+				this.mario.rect.x = this.w - this.mario.rect.w
+			}
 
-		const spritesheet = new Spritesheet('assets/character.png')
-		const sprites = spritesheet.get_sprites({
-			idle : [[5,2.13,16,16]],
-			walk : [[6.07,2.13,16,16], [7.15,2.13,16,16], [8.20,2.13,16,16]],
-			turn : [[9.25,2.13,16,16]],
-			jump : [[10.30,2.13,16,16]],
-		})
-		this.world.resources.animations.set(marioEntity, new SpriteAnimation(sprites))
+			this.tilemap.solidsprites.forEach(obj => {
+				if(this.mario.rect.willLandOn(obj.rect, this.mario.vel.y, 1)){
+						this.mario.vel.y = 0
+						this.mario.rect.y = obj.rect.top - this.mario.rect.h
+						this.mario.ground = true
+					}
+				else if(this.mario.rect.willHitHeadOn(obj.rect, this.mario.vel.y, 1)){
+						this.mario.rect.y = obj.rect.bottom
+						this.mario.vel.y = 1
+					}
+				if(this.mario.rect.hitsLeftSideOf(obj.rect)){
+						this.mario.rect.x = obj.rect.left - this.mario.rect.w
+						this.mario.vel.x = 0
+					}
+				else if(this.mario.rect.hitsRightSideOf(obj.rect)){
+						this.mario.rect.x = obj.rect.right
+						this.mario.vel.x = 0
+					}
+			})
 
-		this.world.addSystem(new InputSystem(), 1)
-		this.world.addSystem(new PhysicsSystem(), 2)
-		this.world.addSystem(new CollisionSystem(), 3)
-		this.world.addSystem(new AnimationSystem(), 4)
-		this.world.addSystem(new RenderSystem(), 5)
-		// Sprint 3: win, audio and UI transitions are now state/resource-driven.
-		this.world.addSystem(new AudioSystem(), 6)
-	}
+			this.mario.rect.y += this.mario.vel.y
 
 	getMarioWorldRect(){
 		return new Rect(

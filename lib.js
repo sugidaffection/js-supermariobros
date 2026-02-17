@@ -20,24 +20,7 @@ class Rect {
 		this.w = w
 		this.h = h
 
-		this.top = this.y
-		this.bottom = this.y + this.h
-		this.left = this.x
-		this.right = this.x + this.w
-
-		this.centerx = this.left + this.w / 2
-		this.centery = this.right + this.h / 2
-		this.center = this.centerx, this.centery
-
-		this.topleft = this.left, this.top
-		this.topright = this.right, this.top
-		this.bottomleft = this.left, this.bottom
-		this.bottomright = this.right, this.bottom
-
-		this.midleft = this.left, this.centery
-		this.midright = this.right, this.centery
-		this.midtop = this.centerx, this.top
-		this.midbottom = this.centerx, this.bottom
+		this.update()
 	}
 
 	update(){
@@ -47,61 +30,55 @@ class Rect {
 		this.right = this.x + this.w
 
 		this.centerx = this.left + this.w / 2
-		this.centery = this.right + this.h / 2
-		this.center = this.centerx, this.centery
+		this.centery = this.top + this.h / 2
+		this.center = { x: this.centerx, y: this.centery }
 
-		this.topleft = this.left, this.top
-		this.topright = this.right, this.top
-		this.bottomleft = this.left, this.bottom
-		this.bottomright = this.right, this.bottom
+		this.topleft = { x: this.left, y: this.top }
+		this.topright = { x: this.right, y: this.top }
+		this.bottomleft = { x: this.left, y: this.bottom }
+		this.bottomright = { x: this.right, y: this.bottom }
 
-		this.midleft = this.left, this.centery
-		this.midright = this.right, this.centery
-		this.midtop = this.centerx, this.top
-		this.midbottom = this.centerx, this.bottom
-	}
-}
-
-class Collider{
-
-	constructor(obj, target){
-		this.object = obj
-		this.target = target
+		this.midleft = { x: this.left, y: this.centery }
+		this.midright = { x: this.right, y: this.centery }
+		this.midtop = { x: this.centerx, y: this.top }
+		this.midbottom = { x: this.centerx, y: this.bottom }
 	}
 
-	collide_bottom(){
-		if(this.object.rect.center > this.target.left && this.object.rect.center < this.target.right){
-			if(this.object.rect.bottom > this.target.rect.top){
-				console.log(true)
-				return true
-			}else{
-				console.log(false)
-			}
-		}
+	overlapsX(other, inset=0){
+		return this.left + inset < other.right && this.right - inset > other.left
 	}
 
-	collide_right(){
-		return this.object.right > this.target.left
+	overlapsY(other, inset=0){
+		return this.top + inset < other.bottom && this.bottom - inset > other.top
 	}
 
-	collide_left(){
-		return this.object.left < this.target.right
+	intersects(other, inset=0){
+		return this.overlapsX(other, inset) && this.overlapsY(other, inset)
 	}
 
-	collide_top(){
-		return this.object.top < this.target.bottom
+	willLandOn(other, dy, insetX=0){
+		return this.bottom + dy > other.top &&
+			this.top < other.top &&
+			this.overlapsX(other, insetX)
 	}
 
-}
+	willHitHeadOn(other, dy, insetX=0){
+		return this.top + dy < other.bottom &&
+			this.bottom > other.bottom &&
+			this.overlapsX(other, insetX)
+	}
 
-function intersects(a, b) {
-	return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
-}
+	hitsLeftSideOf(other){
+		return this.right > other.left &&
+			this.left < other.left &&
+			this.overlapsY(other)
+	}
 
-function overlapsOnX(a, b, skinWidth = 0) {
-	return a.left + skinWidth < b.right && a.right - skinWidth > b.left
-}
+	hitsRightSideOf(other){
+		return this.left < other.right &&
+			this.right > other.right &&
+			this.overlapsY(other)
+		
+	}
 
-function overlapsOnY(a, b, skinWidth = 0) {
-	return a.top + skinWidth < b.bottom && a.bottom - skinWidth > b.top
 }
