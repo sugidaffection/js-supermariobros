@@ -6,7 +6,8 @@ class Scene {
 		this.h = h
 		this.tilemap = new Tilemap(w,h)
 		this.mario = new Mario()
-		this.mario.keyEvent()
+		this.input = new InputManager()
+		this.loop = false
 		this.music = [
 			'assets/main_theme.mp3',
 			'assets/level_complete.mp3'
@@ -61,19 +62,26 @@ class Scene {
 	}
 
 	play(){
+		const moveRight = this.input.isDown(InputManager.ACTIONS.MOVE_RIGHT)
+		const moveLeft = this.input.isDown(InputManager.ACTIONS.MOVE_LEFT)
+
 		this.ctx.clearRect(0,0,this.w,this.h)
 		this.tilemap.render(this.ctx)
 		this.mario.render(this.ctx)
-		if(this.state === GameState.RUNNING){
-			this.mario.update(1/60)
-			if(this.mario.controller.right){
+		if(this.loop){
+			if(this.input.wasPressed(InputManager.ACTIONS.PAUSE)){
+				this.loop = false
+			}
+
+			this.mario.update(1/60, this.input)
+			if(moveRight){
 				if(this.tilemap.x < 1200 && this.mario.rect.right > this.w / 2){
 					this.tilemap.update(this.mario.vel.x)
 					this.tilemap.x += 1
 				}else{
 					this.mario.rect.x += this.mario.vel.x
 				}
-			}else if(this.mario.controller.left){
+			}else if(moveLeft){
 				if(this.mario.vel.x < 0){
 					this.mario.rect.x += this.mario.vel.x
 				}
@@ -133,6 +141,12 @@ class Scene {
 		if(this.state === GameState.RUNNING && this.mario.rect.top > this.h){
 			this.setState(GameState.GAME_OVER)
 		}
+
+		if(!this.loop && this.input.wasPressed(InputManager.ACTIONS.START)){
+			this.loop = true
+		}
+
+		this.input.update()
 	}
 
 	stop(){

@@ -25,12 +25,6 @@ class Mario {
 		this.spriteanimation = new SpriteAnimation(sprites)
 		this.rect = new Rect(10,10*32,32,32)
 
-		this.controller = {
-			up : false,
-			right : false,
-			left : false
-		}
-
 		this.flip = false
 
 		this.acc = new Vector2()
@@ -67,17 +61,20 @@ class Mario {
 		}
 	}
 
-	update(dt){
+	update(dt,input){
 		this.rect.update()
 
 		this.acc = new Vector2(0, this.mass)
+		const movingRight = input.isDown(InputManager.ACTIONS.MOVE_RIGHT)
+		const movingLeft = input.isDown(InputManager.ACTIONS.MOVE_LEFT)
+		const jumping = input.isDown(InputManager.ACTIONS.JUMP)
 		
-		if (this.controller.right){
+		if (movingRight){
 			this.acc.x = this.speed
 			this.flip = false
 		}
 
-		if (this.controller.left){
+		if (movingLeft){
 			this.acc.x = -this.speed
 			this.flip = true
 		}
@@ -85,14 +82,18 @@ class Mario {
 		this.acc.add(this.vel.x * -this.frict, this.vel.y * this.grav)
 		this.vel.add(this.acc.x * dt, this.acc.y * dt)
 
-		if (this.ground && this.controller.up){
+		if (this.ground && jumping){
 			this.vel.y = this.jump
 			this.ground = false
 		}
 
 		if(!this.ground){
-			if(this.vel.y < 0){
-				this.setState(PlayerState.JUMP)
+			this.animation = 'jump'
+		}else if(this.ground && !movingRight && !movingLeft){
+			this.animation = 'idle'
+		}else if(this.ground && (movingRight || movingLeft)){
+			if((movingLeft && this.vel.x > 0) || (movingRight && this.vel.x < 0)){
+				this.animation = 'turn'
 			}else{
 				this.setState(PlayerState.FALL)
 			}
@@ -109,40 +110,6 @@ class Mario {
 
 	render(ctx){
 		this.spriteanimation.play(ctx, this.getAnimation(), this.rect, this.flip)
-	}
-
-	keyEvent(){
-		document.addEventListener('keydown', (e)=>{
-			switch (e.keyCode) {
-				case 32:
-					this.controller.up = true
-					break
-				case 37:
-					this.controller.left = true
-					break
-				case 39:
-					this.controller.right = true
-					break
-				default:
-					break
-			}
-		})
-
-		document.addEventListener('keyup', (e)=>{
-			switch (e.keyCode) {
-				case 32:
-					this.controller.up = false
-					break
-				case 37:
-					this.controller.left = false
-					break
-				case 39:
-					this.controller.right = false
-					break
-				default:
-					break
-			}
-		})
 	}
 
 }
