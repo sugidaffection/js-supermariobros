@@ -8,33 +8,65 @@ class Scene {
 		this.h = h
 		this.tilemap = new Tilemap(w,h)
 		this.mario = new Mario()
-		this.mario.keyEvent()
+		this.input = new InputManager()
 		this.loop = false
 		this.music = [
 			'assets/main_theme.mp3',
 			'assets/level_complete.mp3'
 		]
-		this.idx = 0
 		this.sound = new Audio()
 		this.sound.volume = 0.1
-		
+		this.state = GameState.BOOT
+
 		document.querySelector('#play').addEventListener('click', ()=>{
 			document.querySelector('#play').style.display = 'none'
 			document.querySelector('#game').style.display = 'grid'
-			this.load_sound(true)
-			this.loop = true
+			this.setState(GameState.RUNNING)
 		})
 
-		this.win = false
+		this.setState(GameState.READY)
 	}
 
-	load_sound(loop=false){
-		this.sound.src = this.music[this.idx]
+	setState(nextState){
+		if(this.state === nextState){
+			return
+		}
+
+		const prevState = this.state
+		this.state = nextState
+		this.onEnter(nextState, prevState)
+	}
+
+	onEnter(state){
+		switch (state) {
+			case GameState.RUNNING:
+				this.load_sound(0, true)
+				break
+			case GameState.WIN:
+				this.load_sound(1, false)
+				break
+			case GameState.GAME_OVER:
+			case GameState.PAUSED:
+				this.sound.pause()
+				break
+			default:
+				break
+		}
+	}
+
+	load_sound(trackIdx,loop=false){
+		if(this.sound.src !== this.music[trackIdx]){
+			this.sound.src = this.music[trackIdx]
+		}
 		this.sound.loop = loop
+		this.sound.currentTime = 0
 		this.sound.play()
 	}
 
 	play(){
+		const moveRight = this.input.isDown(InputManager.ACTIONS.MOVE_RIGHT)
+		const moveLeft = this.input.isDown(InputManager.ACTIONS.MOVE_LEFT)
+
 		this.ctx.clearRect(0,0,this.w,this.h)
 		this.tilemap.render(this.ctx)
 		this.mario.render(this.ctx)
@@ -51,7 +83,7 @@ class Scene {
 				}else{
 					this.mario.rect.x += horizontalStep
 				}
-			}else if(this.mario.controller.left){
+			}else if(moveLeft){
 				if(this.mario.vel.x < 0){
 					this.mario.rect.x += horizontalStep
 				}
@@ -102,20 +134,23 @@ class Scene {
 				}
 			})
 
+		if(this.state === GameState.RUNNING && this.tilemap.x === 1200){
+			this.setState(GameState.WIN)
 		}
 
-		if(this.tilemap.x == 1200){
-			this.win = true
+		if(this.state === GameState.RUNNING && this.mario.rect.top > this.h){
+			this.setState(GameState.GAME_OVER)
 		}
 
-		if(this.win && this.idx == 0){
-			this.idx = 1
-			this.load_sound()
+		if(!this.loop && this.input.wasPressed(InputManager.ACTIONS.START)){
+			this.loop = true
 		}
+
+		this.input.update()
 	}
 
 	stop(){
-		this.loop = false
+		this.setState(GameState.PAUSED)
 	}
 
 }

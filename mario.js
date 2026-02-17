@@ -25,12 +25,6 @@ class Mario {
 		this.spriteanimation = new SpriteAnimation(sprites)
 		this.rect = new Rect(10,10*32,32,32)
 
-		this.controller = {
-			up : false,
-			right : false,
-			left : false
-		}
-
 		this.flip = false
 
 		this.acc = new Vector2()
@@ -40,22 +34,47 @@ class Mario {
 		this.mass = 25
 		this.speed = 8
 		this.jump = -10
-		this.animation = 'turn'
+		this.state = PlayerState.IDLE
 		this.ground = false
-		this.win = false
 	}
 
-	update(dt){
+	setState(nextState){
+		if(this.state === nextState){
+			return
+		}
+		this.state = nextState
+	}
+
+	getAnimation(){
+		switch (this.state) {
+			case PlayerState.RUN:
+				return 'walk'
+			case PlayerState.JUMP:
+			case PlayerState.FALL:
+				return 'jump'
+			case PlayerState.TURN:
+			case PlayerState.HURT:
+				return 'turn'
+			case PlayerState.IDLE:
+			default:
+				return 'idle'
+		}
+	}
+
+	update(dt,input){
 		this.rect.update()
 
 		this.acc = new Vector2(0, this.mass)
+		const movingRight = input.isDown(InputManager.ACTIONS.MOVE_RIGHT)
+		const movingLeft = input.isDown(InputManager.ACTIONS.MOVE_LEFT)
+		const jumping = input.isDown(InputManager.ACTIONS.JUMP)
 		
-		if (this.controller.right){
+		if (movingRight){
 			this.acc.x = this.speed
 			this.flip = false
 		}
 
-		if (this.controller.left){
+		if (movingLeft){
 			this.acc.x = -this.speed
 			this.flip = true
 		}
@@ -63,21 +82,27 @@ class Mario {
 		this.acc.add(this.vel.x * -this.frict, this.vel.y * this.grav)
 		this.integrateVelocity(dt)
 
-		if (this.ground && this.controller.up){
+		if (this.ground && jumping){
 			this.vel.y = this.jump
 			this.ground = false
 		}
 
 		if(!this.ground){
 			this.animation = 'jump'
-		}else if(this.ground && !this.controller.right && !this.controller.left){
+		}else if(this.ground && !movingRight && !movingLeft){
 			this.animation = 'idle'
-		}else if(this.ground && (this.controller.right || this.controller.left)){
-			if((this.controller.left && this.vel.x > 0) || (this.controller.right && this.vel.x < 0)){
+		}else if(this.ground && (movingRight || movingLeft)){
+			if((movingLeft && this.vel.x > 0) || (movingRight && this.vel.x < 0)){
 				this.animation = 'turn'
 			}else{
-				this.animation = 'walk'
+				this.setState(PlayerState.FALL)
 			}
+		}else if(!this.controller.right && !this.controller.left){
+			this.setState(PlayerState.IDLE)
+		}else if((this.controller.left && this.vel.x > 0) || (this.controller.right && this.vel.x < 0)){
+			this.setState(PlayerState.TURN)
+		}else{
+			this.setState(PlayerState.RUN)
 		}
 
 		this.spriteanimation.speed = this.speed * dt
@@ -88,41 +113,7 @@ class Mario {
 		this.vel.add(this.acc.x * dt, this.acc.y * dt)
 	}
 	render(ctx){
-		this.spriteanimation.play(ctx, this.animation, this.rect, this.flip)
-	}
-
-	keyEvent(){
-		document.addEventListener('keydown', (e)=>{
-			switch (e.keyCode) {
-				case 32:
-					this.controller.up = true
-					break
-				case 37:
-					this.controller.left = true
-					break
-				case 39:
-					this.controller.right = true
-					break
-				default:
-					break
-			}
-		})
-
-		document.addEventListener('keyup', (e)=>{
-			switch (e.keyCode) {
-				case 32:
-					this.controller.up = false
-					break
-				case 37:
-					this.controller.left = false
-					break
-				case 39:
-					this.controller.right = false
-					break
-				default:
-					break
-			}
-		})
+		this.spriteanimation.play(ctx, this.getAnimation(), this.rect, this.flip)
 	}
 
 }
