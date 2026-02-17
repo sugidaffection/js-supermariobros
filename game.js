@@ -51,7 +51,7 @@ class Scene {
 	_bindPlayButton() {
 		document.querySelector('#play').addEventListener('click', () => {
 			document.querySelector('#play').style.display = 'none'
-			document.querySelector('#game').style.display = 'grid'
+			document.querySelector('#game').style.display = 'block'
 			this.gameFsm.transition('running')
 		})
 	}

@@ -66,8 +66,10 @@ class Tilemap {
 	render(ctx, cameraX) {
 		const minX = cameraX - this.tileSize
 		const maxX = cameraX + this.w + this.tileSize
+		const minY = -this.tileSize
+		const maxY = this.h + this.tileSize
 		const drawTile = (obj) => {
-			if (obj.rect.right >= minX && obj.rect.left <= maxX && obj.rect.bottom <= this.h + this.tileSize) {
+			if (obj.rect.right >= minX && obj.rect.left <= maxX && obj.rect.bottom >= minY && obj.rect.top <= maxY) {
 				obj.sprite.draw(ctx, { x: obj.rect.x - cameraX, y: obj.rect.y, w: obj.rect.w, h: obj.rect.h }, false)
 			}
 		}
