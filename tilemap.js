@@ -5,7 +5,7 @@ class Tilemap {
 		this.tileSize = 32
 		this.chunkTiles = 16
 		this.chunkPx = this.chunkTiles * this.tileSize
-		this.tilesheet = new Spritesheet('assets/tileset.png')
+		this.tilesheet = new Spritesheet('/tileset.png')
 		this.background = []
 		this.solids = []
 		this.chunks = new Map()

@@ -8,7 +8,7 @@ class Scene {
 		this.world = new World()
 		this.tilemap = new Tilemap(w, h, mapData['1_1'])
 		this.cameraX = 0
-		this.music = ['assets/main_theme.mp3', 'assets/level_complete.mp3']
+		this.music = ['/main_theme.mp3', '/level_complete.mp3']
 		this.sound = new Audio()
 		this.sound.volume = 0.1
 
@@ -22,8 +22,8 @@ class Scene {
 		})
 
 		this._initWorldResources()
-		this.playerEntity = createMarioEntity(this.world, new Spritesheet('assets/character.png'))
-		createEnemyEntities(this.world, new Spritesheet('assets/enemies.png'), mapData['1_1'].enemies)
+		this.playerEntity = createMarioEntity(this.world, new Spritesheet('/character.png'))
+		createEnemyEntities(this.world, new Spritesheet('/enemies.png'), mapData['1_1'].enemies)
 		this._registerSystems()
 		this._bindPlayButton()
 	}
@@ -144,7 +144,7 @@ class Game {
 	}
 
 	async init() {
-		const response = await fetch('assets/map.json')
+		const response = await fetch('/map.json')
 		const mapData = await response.json()
 		this.scene = new Scene(this.ctx, this.w, this.h, mapData)
 		
