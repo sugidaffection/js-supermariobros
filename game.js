@@ -1,3 +1,5 @@
+const SKIN_WIDTH = 1
+
 class Scene {
 
 	constructor(ctx,w,h){
@@ -37,19 +39,25 @@ class Scene {
 		this.tilemap.render(this.ctx)
 		this.mario.render(this.ctx)
 		if(this.loop){
-			this.mario.update(1/60)
+			const dt = 1 / 60
+			this.mario.update(dt)
+			this.mario.ground = false
+			const horizontalStep = this.mario.vel.x * dt
+
 			if(this.mario.controller.right){
 				if(this.tilemap.x < 1200 && this.mario.rect.right > this.w / 2){
-					this.tilemap.update(this.mario.vel.x)
+					this.tilemap.update(horizontalStep)
 					this.tilemap.x += 1
 				}else{
-					this.mario.rect.x += this.mario.vel.x
+					this.mario.rect.x += horizontalStep
 				}
 			}else if(this.mario.controller.left){
 				if(this.mario.vel.x < 0){
-					this.mario.rect.x += this.mario.vel.x
+					this.mario.rect.x += horizontalStep
 				}
 			}
+
+			this.mario.rect.update()
 
 			if(this.mario.rect.left < 0){
 				this.mario.rect.x = 0
@@ -59,39 +67,40 @@ class Scene {
 				this.mario.rect.x = this.w - this.mario.rect.w
 			}
 
+			this.mario.rect.update()
+
 			this.tilemap.solidsprites.forEach(obj => {
-				if(this.mario.rect.bottom + this.mario.vel.y > obj.rect.top &&
-					this.mario.rect.top < obj.rect.top &&
-					this.mario.rect.left + 1 < obj.rect.right &&
-					this.mario.rect.right - 1 > obj.rect.left){
-						this.mario.vel.y = 0
-						this.mario.rect.y = obj.rect.top - this.mario.rect.h
-						this.mario.ground = true
-					}
-				else if(this.mario.rect.top + this.mario.vel.y < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.bottom &&
-					this.mario.rect.left + 1 < obj.rect.right &&
-					this.mario.rect.right - 1 > obj.rect.left){
-						this.mario.rect.y = obj.rect.bottom
-						this.mario.vel.y = 1
-					}
-				if(this.mario.rect.right > obj.rect.left &&
-					this.mario.rect.left < obj.rect.left &&
-					this.mario.rect.top < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.top){
-						this.mario.rect.x = obj.rect.left - this.mario.rect.w
-						this.mario.vel.x = 0
-					}
-				else if(this.mario.rect.left < obj.rect.right &&
-					this.mario.rect.right > obj.rect.right &&
-					this.mario.rect.top < obj.rect.bottom &&
-					this.mario.rect.bottom > obj.rect.top){
-						this.mario.rect.x = obj.rect.right
-						this.mario.vel.x = 0
-					}
+				if (this.mario.vel.x > 0 && overlapsOnY(this.mario.rect, obj.rect, SKIN_WIDTH) && this.mario.rect.right > obj.rect.left && this.mario.rect.left < obj.rect.left) {
+					this.mario.rect.x = obj.rect.left - this.mario.rect.w
+					this.mario.vel.x = 0
+					this.mario.rect.update()
+				} else if (this.mario.vel.x < 0 && overlapsOnY(this.mario.rect, obj.rect, SKIN_WIDTH) && this.mario.rect.left < obj.rect.right && this.mario.rect.right > obj.rect.right) {
+					this.mario.rect.x = obj.rect.right
+					this.mario.vel.x = 0
+					this.mario.rect.update()
+				}
 			})
 
-			this.mario.rect.y += this.mario.vel.y
+			const verticalStep = this.mario.vel.y * dt
+			this.mario.rect.y += verticalStep
+			this.mario.rect.update()
+
+			this.tilemap.solidsprites.forEach(obj => {
+				if (!intersects(this.mario.rect, obj.rect) || !overlapsOnX(this.mario.rect, obj.rect, SKIN_WIDTH)) {
+					return
+				}
+
+				if (this.mario.vel.y > 0 && this.mario.rect.bottom > obj.rect.top && this.mario.rect.top < obj.rect.top) {
+					this.mario.vel.y = 0
+					this.mario.rect.y = obj.rect.top - this.mario.rect.h
+					this.mario.ground = true
+					this.mario.rect.update()
+				} else if (this.mario.vel.y < 0 && this.mario.rect.top < obj.rect.bottom && this.mario.rect.bottom > obj.rect.bottom) {
+					this.mario.rect.y = obj.rect.bottom
+					this.mario.vel.y = 0
+					this.mario.rect.update()
+				}
+			})
 
 		}
 
