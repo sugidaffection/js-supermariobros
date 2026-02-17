@@ -1,4 +1,4 @@
-class InputSystem {
+export class InputSystem {
 	constructor() {
 		this.ready = false
 	}

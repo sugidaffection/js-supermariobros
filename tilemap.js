@@ -1,4 +1,7 @@
-class Tilemap {
+import { Rect } from './lib.js'
+import { Spritesheet } from './spritesheet.js'
+
+export class Tilemap {
 	constructor(w, h, levelData) {
 		this.w = w
 		this.h = h
@@ -14,33 +17,45 @@ class Tilemap {
 	}
 
 	_load(levelData) {
-		const tileLayers = levelData.backgrounds || (levelData.chunks || []).flatMap((chunk) =>
-			(chunk.tiles || []).map((tileDef) => ({ ...tileDef }))
-		)
-
-		tileLayers.forEach((tiles) => {
-			const sprite = this.tilesheet.get_sprite([...tiles.sprite, 16, 16])
-			tiles.ranges.forEach((range) => {
-				for (let x = range[0]; x < range[1]; x++) {
-					for (let y = range[2]; y < range[3]; y++) {
-						const tile = {
-							sprite,
-							rect: new Rect(x * this.tileSize, y * this.tileSize, this.tileSize, this.tileSize),
-							solid: tiles.name !== 'sky'
-						}
-						this.levelWidthPx = Math.max(this.levelWidthPx, tile.rect.right)
-						if (tile.solid) {
-							this.solids.push(tile)
-							const chunkX = Math.floor(tile.rect.left / this.chunkPx)
-							if (!this.chunks.has(chunkX)) {
-								this.chunks.set(chunkX, [])
+		const chunks = levelData.chunks || []
+		
+		chunks.forEach((chunk) => {
+			const startColumn = chunk.startColumn || 0
+			const chunkWidth = chunk.width || 0
+			
+			;(chunk.tiles || []).forEach((tiles) => {
+				const sprite = this.tilesheet.get_sprite([...tiles.sprite, 16, 16])
+				const isSolid = !['sky', 'brick2', 'brick3'].includes(tiles.name)
+				const isSky = tiles.name === 'sky'
+				
+				tiles.ranges.forEach((range) => {
+					// Expand sky tiles to cover the whole chunk width if specified
+					const startX = isSky ? 0 : range[0]
+					const endX = isSky ? Math.max(range[1], chunkWidth) : range[1]
+					
+					for (let x = startX; x < endX; x++) {
+						for (let y = range[2]; y < range[3]; y++) {
+							const absX = (startColumn + x) * this.tileSize
+							const absY = y * this.tileSize
+							const tile = {
+								sprite,
+								rect: new Rect(absX, absY, this.tileSize, this.tileSize),
+								solid: isSolid
 							}
-							this.chunks.get(chunkX).push(tile)
-						} else {
-							this.background.push(tile)
+							this.levelWidthPx = Math.max(this.levelWidthPx, tile.rect.right)
+							if (tile.solid) {
+								this.solids.push(tile)
+								const chunkIdx = Math.floor(tile.rect.left / this.chunkPx)
+								if (!this.chunks.has(chunkIdx)) {
+									this.chunks.set(chunkIdx, [])
+								}
+								this.chunks.get(chunkIdx).push(tile)
+							} else {
+								this.background.push(tile)
+							}
 						}
 					}
-				}
+				})
 			})
 		})
 	}

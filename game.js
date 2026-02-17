@@ -1,6 +1,21 @@
+import { World } from './ecs.js'
+import { Tilemap } from './tilemap.js'
+import { StateMachine, Rect } from './lib.js'
+import { Spritesheet, SpriteAnimation } from './spritesheet.js'
+import { StaticCollisionGrid } from './ecs/staticCollisionGrid.js'
+import { createMarioEntity, createEnemyEntities } from './mario.js'
+import { InputSystem } from './ecs/systems/InputSystem.js'
+import { PhysicsSystem } from './ecs/systems/PhysicsSystem.js'
+import { CollisionSystem } from './ecs/systems/CollisionSystem.js'
+import { AnimationSystem } from './ecs/systems/AnimationSystem.js'
+import { RenderSystem } from './ecs/systems/RenderSystem.js'
+import { AudioSystem } from './ecs/systems/AudioSystem.js'
+import { EnemySystem } from './ecs/systems/EnemySystem.js'
+import { HUDSystem } from './ecs/systems/HUDSystem.js'
+
 const SKIN_WIDTH = 1
 
-class Scene {
+export class Scene {
 	constructor(ctx, w, h, mapData) {
 		this.ctx = ctx
 		this.w = w
@@ -36,22 +51,28 @@ class Scene {
 			tilemap: this.tilemap,
 			input: { keys: {} },
 			playerEntity: null,
-			game: { loop: true },
+			game: { loop: true, running: false },
 			ui: { playButton: document.querySelector('#play') },
 			music: this.music,
 			sound: this.sound,
 			audio: { switchedToWinTheme: false },
 			collisionGrid: new StaticCollisionGrid(32),
 			animations: new Map(),
-			time: { dt: 1 / 60 }
+			time: { dt: 1 / 60 },
+			stats: {
+				score: 0,
+				coins: 0,
+				world: '1-1',
+				time: 400
+			}
 		}
 		this.tilemap.populateCollisionGrid(this.world.resources.collisionGrid)
 	}
 
 	_bindPlayButton() {
 		document.querySelector('#play').addEventListener('click', () => {
-			document.querySelector('#play').style.display = 'none'
-			document.querySelector('#game').style.display = 'block'
+			document.querySelector('#ui-overlay').classList.add('hidden')
+			this.world.resources.game.running = true
 			this.gameFsm.transition('running')
 		})
 	}
@@ -69,6 +90,8 @@ class Scene {
 		const animationSystem = new AnimationSystem()
 		const renderSystem = new RenderSystem()
 		const audioSystem = new AudioSystem()
+		const hudSystem = new HUDSystem()
+		const enemySystem = new EnemySystem()
 
 		this.world.addSystem({
 			stage: 'update',
@@ -97,6 +120,14 @@ class Scene {
 			stage: 'update',
 			run: (world, context) => {
 				if (this.gameFsm.state !== 'running') return
+				enemySystem.update(world, context.dt)
+			}
+		})
+
+		this.world.addSystem({
+			stage: 'update',
+			run: (world, context) => {
+				if (this.gameFsm.state !== 'running') return
 				animationSystem.update(world)
 			}
 		})
@@ -112,6 +143,7 @@ class Scene {
 			stage: 'render',
 			run: (world, context) => {
 				renderSystem.update(world)
+				hudSystem.update(world)
 			}
 		})
 	}
@@ -128,12 +160,11 @@ class Scene {
 	}
 }
 
-class Game {
+export class Game {
 	constructor(w, h) {
 		const canvas = document.querySelector('#game')
 		canvas.width = w
 		canvas.height = h
-		canvas.style.border = '1px solid #000'
 		this.ctx = canvas.getContext('2d')
 		this.w = w
 		this.h = h
@@ -186,8 +217,3 @@ class Game {
 	}
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-	const game = new Game(600, 448)
-	await game.init()
-	game.run(0)
-})

@@ -1,4 +1,4 @@
-class World {
+export class World {
 	constructor() {
 		this.entities = new Map()
 		this.systems = []

@@ -1,4 +1,7 @@
-function createMarioEntity(world, spritesheet) {
+import { Rect } from './lib.js'
+import { SpriteAnimation } from './spritesheet.js'
+
+export function createMarioEntity(world, spritesheet) {
 	const sprites = spritesheet.get_sprites({
 		idle: [[5, 2.13, 16, 16]],
 		walk: [[6.07, 2.13, 16, 16], [7.15, 2.13, 16, 16], [8.2, 2.13, 16, 16]],
@@ -8,7 +11,7 @@ function createMarioEntity(world, spritesheet) {
 
 	const entityId = world.createEntity({
 		Transform: new Rect(32, 320, 32, 32),
-		Velocity: { x: 0, y: 0, speed: 0.5, jump: -12, friction: 0.1, gravity: 0.5, mass: 1 },
+		Velocity: { x: 0, y: 0, speed: 8, jump: -12, friction: 0.8, gravity: 0.5, mass: 1 },
 		Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
 		Sprite: { animation: 'idle', flip: false },
 		Input: { up: false, left: false, right: false, jumpPressed: false },
@@ -22,7 +25,7 @@ function createMarioEntity(world, spritesheet) {
 	return entityId
 }
 
-function createEnemyEntities(world, spriteSheet, mapEnemies) {
+export function createEnemyEntities(world, spriteSheet, mapEnemies) {
 	const sprites = spriteSheet.get_sprites({
 		walk: [[0, 1, 16, 16], [1, 1, 16, 16]]
 	})
@@ -31,7 +34,7 @@ function createEnemyEntities(world, spriteSheet, mapEnemies) {
 		enemyDef.position.forEach((pos) => {
 			const entityId = world.createEntity({
 				Transform: new Rect(pos[0] * 32, pos[1] * 32, 32, 32),
-				Velocity: { x: -2, y: 0, speed: 2, jump: 0, friction: 0, gravity: 0.7, mass: 1 },
+				Velocity: { x: -2, y: 0, speed: 2, jump: 0, friction: 0, gravity: 0.5, mass: 1 },
 				Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
 				Sprite: { animation: 'walk', flip: true },
 				Input: { up: false, left: false, right: false, jumpPressed: false },

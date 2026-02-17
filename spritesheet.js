@@ -1,4 +1,4 @@
-class Sprite {
+export class Sprite {
 
 	constructor(image,[x,y,w,h]){
 		this.image = image
@@ -20,7 +20,7 @@ class Sprite {
 	}
 }
 
-class Spritesheet {
+export class Spritesheet {
 
 	constructor(path){
 		this.image = new Image()
@@ -59,7 +59,7 @@ class Spritesheet {
 	}
 }
 
-class SpriteAnimation {
+export class SpriteAnimation {
 
 	constructor(sprites){
 		this.idx = 0

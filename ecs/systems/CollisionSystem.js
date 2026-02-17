@@ -1,4 +1,4 @@
-class CollisionSystem {
+export class CollisionSystem {
 	update(world, scene) {
 		const tilemap = world.resources.tilemap
 		const entities = world.query(['Transform', 'Velocity', 'Collider'])

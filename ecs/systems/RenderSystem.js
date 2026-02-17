@@ -1,4 +1,4 @@
-class RenderSystem {
+export class RenderSystem {
 	update(world) {
 		const ctx = world.resources.ctx
 		const viewport = world.resources.viewport

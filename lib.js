@@ -1,4 +1,4 @@
-class Vector2 {
+export class Vector2 {
 	constructor(x = 0, y = 0) {
 		this.x = x
 		this.y = y
@@ -15,7 +15,7 @@ class Vector2 {
 	}
 }
 
-class Rect {
+export class Rect {
 	constructor(x, y, w, h) {
 		this.x = x
 		this.y = y
@@ -38,7 +38,7 @@ class Rect {
 	}
 }
 
-class InputManager {
+export class InputManager {
 	constructor() {
 		this.actions = {
 			jump: false,
@@ -68,7 +68,7 @@ class InputManager {
 	}
 }
 
-class StateMachine {
+export class StateMachine {
 	constructor(initialState, transitions = {}, hooks = {}) {
 		this.state = initialState
 		this.transitions = transitions

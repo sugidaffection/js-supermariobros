@@ -1,4 +1,4 @@
-class PhysicsSystem {
+export class PhysicsSystem {
 	update(world, dt) {
 		const entities = world.query(['Transform', 'Velocity', 'Input'])
 		entities.forEach(entity => {

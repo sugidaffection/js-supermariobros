@@ -1,4 +1,4 @@
-class AnimationSystem {
+export class AnimationSystem {
 	update(world) {
 		const entities = world.query(['Transform', 'Velocity', 'Sprite', 'State', 'Input'])
 		entities.forEach(entity => {
@@ -10,6 +10,7 @@ class AnimationSystem {
 			const animation = world.resources.animations.get(entity.id)
 
 			if (!animation || !animation.sprites) return
+			if (state.value === 'dead') return // Skip dead enemies
 
 			const availableSprites = Object.keys(animation.sprites)
 			const isPlayer = availableSprites.includes('idle')

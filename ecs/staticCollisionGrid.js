@@ -1,4 +1,4 @@
-class StaticCollisionGrid {
+export class StaticCollisionGrid {
 	constructor(tileSize = 32) {
 		this.tileSize = tileSize
 		this.cells = new Map()

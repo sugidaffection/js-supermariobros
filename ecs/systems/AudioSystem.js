@@ -1,4 +1,4 @@
-class AudioSystem {
+export class AudioSystem {
 	update(world) {
 		const camera = world.resources.camera
 		const gameState = world.resources.game
@@ -18,8 +18,10 @@ class AudioSystem {
 				sound.loop = false
 				sound.play()
 			}
-			ui.playButton.style.display = 'inline-block'
-			ui.playButton.textContent = 'replay'
+			const overlay = document.querySelector('#ui-overlay')
+			overlay.classList.remove('hidden')
+			overlay.querySelector('h1').textContent = 'LEVEL COMPLETE!'
+			ui.playButton.textContent = 'REPLAY'
 		}
 	}
 }
