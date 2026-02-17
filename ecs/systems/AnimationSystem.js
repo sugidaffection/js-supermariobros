@@ -7,20 +7,44 @@ class AnimationSystem {
 			const sprite = world.getComponent(entity.id, 'Sprite')
 			const state = world.getComponent(entity.id, 'State')
 			const input = world.getComponent(entity.id, 'Input')
+			const animation = world.resources.animations.get(entity.id)
+
+			if (!animation || !animation.sprites) return
+
+			const availableSprites = Object.keys(animation.sprites)
+			const isPlayer = availableSprites.includes('idle')
 
 			sprite.flip = state.facing === 'left'
+
 			if (!transform.grounded) {
-				sprite.animation = 'jump'
-				state.value = 'jump'
+				if (availableSprites.includes('jump')) {
+					sprite.animation = 'jump'
+					state.value = 'jump'
+				}
 			} else if (!input.left && !input.right) {
-				sprite.animation = 'idle'
-				state.value = 'idle'
+				if (availableSprites.includes('idle')) {
+					sprite.animation = 'idle'
+					state.value = 'idle'
+				} else if (availableSprites.includes('walk')) {
+					sprite.animation = 'walk'
+					state.value = 'walk'
+				}
 			} else if ((input.left && velocity.x > 0) || (input.right && velocity.x < 0)) {
-				sprite.animation = 'turn'
-				state.value = 'turn'
+				if (availableSprites.includes('turn')) {
+					sprite.animation = 'turn'
+					state.value = 'turn'
+				} else if (availableSprites.includes('walk')) {
+					sprite.animation = 'walk'
+					state.value = 'walk'
+				}
 			} else {
-				sprite.animation = 'walk'
-				state.value = 'walk'
+				if (availableSprites.includes('walk')) {
+					sprite.animation = 'walk'
+					state.value = 'walk'
+				} else if (availableSprites.includes('idle')) {
+					sprite.animation = 'idle'
+					state.value = 'idle'
+				}
 			}
 		})
 	}
