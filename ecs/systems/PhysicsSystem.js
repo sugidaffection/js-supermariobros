@@ -8,17 +8,14 @@ export class PhysicsSystem {
 			const velocity = world.getComponent(entity.id, 'Velocity')
 			const input = world.getComponent(entity.id, 'Input')
 
-			// Apply gravity (scaled by dt for consistent physics)
-			velocity.y += velocity.gravity
-
 			if (input) {
-				// Direct velocity setting for responsive controls
+				// Player input handling
 				if (input.right) {
 					velocity.x = velocity.speed
 				} else if (input.left) {
 					velocity.x = -velocity.speed
 				} else {
-					// Apply friction when no input
+					// Apply friction when no horizontal input
 					velocity.x *= velocity.friction
 					if (Math.abs(velocity.x) < 0.1) velocity.x = 0
 				}
@@ -30,23 +27,26 @@ export class PhysicsSystem {
 					input.jumpPressed = false
 				}
 			} else {
-				// For enemies, apply standard friction
+				// Enemy AI - constant movement with friction
 				velocity.x *= (1 - velocity.friction)
 			}
+
+			// Apply gravity
+			velocity.y += velocity.gravity
 
 			// Apply velocity to position
 			transform.x += velocity.x
 			transform.y += velocity.y
 			transform.update()
 
-			// Keep player in bounds
+			// Keep in bounds
 			if (transform.x < 0) {
 				transform.x = 0
 				transform.update()
 			}
 		})
 
-		// Update camera to follow player
+		// Update camera
 		const playerEntityId = world.resources.playerEntity
 		if (playerEntityId) {
 			const playerTransform = world.getComponent(playerEntityId, 'Transform')
