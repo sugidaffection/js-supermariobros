@@ -1,95 +1,93 @@
 class Vector2 {
-	constructor(x=0,y=0){
+	constructor(x = 0, y = 0) {
 		this.x = x
 		this.y = y
 	}
 
-	add(x, y){
+	add(x, y) {
 		this.x += x
 		this.y += y
-
 		return this
+	}
+
+	copy() {
+		return new Vector2(this.x, this.y)
 	}
 }
 
 class Rect {
-
-	constructor(x,y,w,h){
+	constructor(x, y, w, h) {
 		this.x = x
 		this.y = y
 		this.w = w
 		this.h = h
-
-		this.top = this.y
-		this.bottom = this.y + this.h
-		this.left = this.x
-		this.right = this.x + this.w
-
-		this.centerx = this.left + this.w / 2
-		this.centery = this.right + this.h / 2
-		this.center = this.centerx, this.centery
-
-		this.topleft = this.left, this.top
-		this.topright = this.right, this.top
-		this.bottomleft = this.left, this.bottom
-		this.bottomright = this.right, this.bottom
-
-		this.midleft = this.left, this.centery
-		this.midright = this.right, this.centery
-		this.midtop = this.centerx, this.top
-		this.midbottom = this.centerx, this.bottom
+		this.update()
 	}
 
-	update(){
+	update() {
 		this.top = this.y
 		this.bottom = this.y + this.h
 		this.left = this.x
 		this.right = this.x + this.w
-
 		this.centerx = this.left + this.w / 2
-		this.centery = this.right + this.h / 2
-		this.center = this.centerx, this.centery
+		this.centery = this.top + this.h / 2
+	}
 
-		this.topleft = this.left, this.top
-		this.topright = this.right, this.top
-		this.bottomleft = this.left, this.bottom
-		this.bottomright = this.right, this.bottom
-
-		this.midleft = this.left, this.centery
-		this.midright = this.right, this.centery
-		this.midtop = this.centerx, this.top
-		this.midbottom = this.centerx, this.bottom
+	intersects(other) {
+		return this.left < other.right && this.right > other.left && this.top < other.bottom && this.bottom > other.top
 	}
 }
 
-class Collider{
-
-	constructor(obj, target){
-		this.object = obj
-		this.target = target
+class InputManager {
+	constructor() {
+		this.actions = {
+			jump: false,
+			left: false,
+			right: false
+		}
+		this._bind()
 	}
 
-	collide_bottom(){
-		if(this.object.rect.center > this.target.left && this.object.rect.center < this.target.right){
-			if(this.object.rect.bottom > this.target.rect.top){
-				console.log(true)
-				return true
-			}else{
-				console.log(false)
-			}
+	_bind() {
+		document.addEventListener('keydown', (e) => this._set(e, true))
+		document.addEventListener('keyup', (e) => this._set(e, false))
+	}
+
+	_set(e, value) {
+		switch (e.keyCode) {
+			case 32:
+				this.actions.jump = value
+				break
+			case 37:
+				this.actions.left = value
+				break
+			case 39:
+				this.actions.right = value
+				break
 		}
 	}
+}
 
-	collide_right(){
-		return this.object.right > this.target.left
+class StateMachine {
+	constructor(initialState, transitions = {}, hooks = {}) {
+		this.state = initialState
+		this.transitions = transitions
+		this.hooks = hooks
 	}
 
-	collide_left(){
-		return this.object.left < this.target.right
+	can(next) {
+		return (this.transitions[this.state] || []).includes(next)
 	}
 
-	collide_top(){
-		return this.object.top < this.target.bottom
+	transition(next, payload) {
+		if (!this.can(next)) {
+			return false
+		}
+		const prev = this.state
+		this.state = next
+		if (this.hooks[next]) {
+			this.hooks[next](prev, payload)
+		}
+		return true
 	}
-
 }
