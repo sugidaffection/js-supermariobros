@@ -36,7 +36,6 @@ class Rect {
 	intersects(other) {
 		return this.left < other.right && this.right > other.left && this.top < other.bottom && this.bottom > other.top
 	}
-}
 
 class InputManager {
 	constructor() {

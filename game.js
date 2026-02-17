@@ -1,3 +1,5 @@
+const SKIN_WIDTH = 1
+
 class Scene {
 	constructor(ctx, w, h, mapData) {
 		this.ctx = ctx

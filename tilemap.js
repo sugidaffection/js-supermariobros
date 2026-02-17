@@ -35,6 +35,8 @@ class Tilemap {
 						} else {
 							this.background.push(tile)
 						}
+
+						this.addToSector(tile, isSky ? 'background' : 'solid')
 					}
 				}
 			})
