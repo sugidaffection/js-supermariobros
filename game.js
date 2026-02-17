@@ -1,3 +1,5 @@
+const SKIN_WIDTH = 1
+
 class Scene {
 
 	constructor(ctx,w,h){
@@ -78,6 +80,15 @@ class Scene {
 		this.world.addSystem(new AudioSystem(), 6)
 	}
 
+	getMarioWorldRect(){
+		return new Rect(
+			this.mario.rect.x + this.tilemap.cameraX,
+			this.mario.rect.y,
+			this.mario.rect.w,
+			this.mario.rect.h
+		)
+	}
+
 	play(){
 		if (this.loop) {
 			this.world.update(1/60)
@@ -85,6 +96,8 @@ class Scene {
 			this.world.getStore('Transform') // keep world initialized
 			new RenderSystem().update(this.world)
 		}
+
+		this.input.update()
 	}
 
 	stop(){
