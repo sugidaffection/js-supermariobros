@@ -1,6 +1,6 @@
 class CollisionSystem {
-	update(world) {
-		const grid = world.resources.collisionGrid
+	update(world, scene) {
+		const tilemap = world.resources.tilemap
 		const entities = world.query(['Transform', 'Velocity', 'Collider'])
 		entities.forEach(entity => {
 			const transform = world.getComponent(entity.id, 'Transform')
@@ -9,7 +9,7 @@ class CollisionSystem {
 			if (collider.type !== 'dynamic' || !collider.solid) return
 
 			transform.grounded = false
-			const potentialTiles = grid.query(transform)
+			const potentialTiles = tilemap.querySolids(transform)
 			potentialTiles.forEach(tile => {
 				const rect = tile.rect
 				if (transform.y + transform.h + velocity.y * 60 > rect.top &&

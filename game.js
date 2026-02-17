@@ -89,7 +89,7 @@ class Scene {
 			stage: 'update',
 			run: (world, context) => {
 				if (this.gameFsm.state !== 'running') return
-				collisionSystem.update(world)
+				collisionSystem.update(world, this)
 			}
 		})
 
