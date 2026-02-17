@@ -13,25 +13,29 @@ class PhysicsSystem {
 			if (input.left) accX = -velocity.speed
 
 			accX += velocity.x * -velocity.friction
-			accY += velocity.y * velocity.gravity
 
-			velocity.x += accX * dt
-			velocity.y += accY * dt
+			velocity.x += accX
+			velocity.y += accY
 
 			if (transform.grounded && input.jumpPressed) {
 				velocity.y = velocity.jump
 				transform.grounded = false
 			}
 
-			transform.x += velocity.x * dt * 60
-			transform.y += velocity.y * dt
+			transform.x += velocity.x
+			transform.y += velocity.y
+			transform.update()
 
-			if (transform.x < 0) transform.x = 0
+			if (transform.x < 0) {
+				transform.x = 0
+				transform.update()
+			}
 		})
 
 		const playerTransform = world.getComponent(world.resources.playerEntity, 'Transform')
 		const camera = world.resources.camera
-		const halfViewport = camera.viewportWidth / 2
+		const viewport = world.resources.viewport
+		const halfViewport = (viewport.viewportWidth || viewport.w) / 2
 		camera.x = Math.max(0, Math.min(camera.maxX, playerTransform.x - halfViewport))
 	}
 }

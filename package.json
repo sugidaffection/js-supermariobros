@@ -4,7 +4,10 @@
   "description": "Super Mario Bros with Javascript",
   "main": "ecs.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "playwright test"
   },
   "repository": {
     "type": "git",
@@ -13,12 +16,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/sugidaffection/js-supermariobros/issues"
   },
   "homepage": "https://github.com/sugidaffection/js-supermariobros#readme",
   "devDependencies": {
-    "@playwright/test": "^1.58.2"
+    "@playwright/test": "^1.58.2",
+    "vite": "^7.3.1"
   }
 }

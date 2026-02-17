@@ -12,18 +12,20 @@ class CollisionSystem {
 			const potentialTiles = tilemap.querySolids(transform)
 			potentialTiles.forEach(tile => {
 				const rect = tile.rect
-				if (transform.y + transform.h + velocity.y * 60 > rect.top &&
+				if (transform.y + transform.h + velocity.y > rect.top &&
 					transform.y < rect.top &&
 					transform.x + 1 < rect.right &&
 					transform.x + transform.w - 1 > rect.left) {
 					velocity.y = 0
 					transform.y = rect.top - transform.h
+					transform.update()
 					transform.grounded = true
-				} else if (transform.y + velocity.y * 60 < rect.bottom &&
+				} else if (transform.y + velocity.y < rect.bottom &&
 					transform.y + transform.h > rect.bottom &&
 					transform.x + 1 < rect.right &&
 					transform.x + transform.w - 1 > rect.left) {
 					transform.y = rect.bottom
+					transform.update()
 					velocity.y = 1
 				}
 
@@ -32,12 +34,14 @@ class CollisionSystem {
 					transform.y < rect.bottom &&
 					transform.y + transform.h > rect.top) {
 					transform.x = rect.left - transform.w
+					transform.update()
 					velocity.x = 0
 				} else if (transform.x < rect.right &&
 					transform.x + transform.w > rect.right &&
 					transform.y < rect.bottom &&
 					transform.y + transform.h > rect.top) {
 					transform.x = rect.right
+					transform.update()
 					velocity.x = 0
 				}
 			})
