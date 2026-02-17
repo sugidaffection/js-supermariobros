@@ -1,119 +1,38 @@
-class Mario {
+function createMarioEntity(world, spritesheet) {
+	const sprites = spritesheet.get_sprites({
+		idle: [[5, 2.13, 16, 16]],
+		walk: [[6.07, 2.13, 16, 16], [7.15, 2.13, 16, 16], [8.2, 2.13, 16, 16]],
+		turn: [[9.25, 2.13, 16, 16]],
+		jump: [[10.3, 2.13, 16, 16]]
+	})
 
-	constructor(){
-		const spritesheet = new Spritesheet('assets/character.png')
-		const sprites = spritesheet
-			.get_sprites(
-				{
-					idle : [
-						[5,2.13,16,16]
-					],
-					walk : [
-						[6.07,2.13,16,16],
-						[7.15,2.13,16,16],
-						[8.20,2.13,16,16]
-					],
-					turn : [
-						[9.25,2.13,16,16]
-					],
-					jump : [
-						[10.30,2.13,16,16]
-					]
-				}
-			)
+	return world.createEntity({
+		tag: { type: 'player' },
+		transform: { rect: new Rect(32, 320, 32, 32), flip: false },
+		physics: { vel: new Vector2(), acc: new Vector2(), speed: 8, jump: -12, gravity: 42, drag: 16, grounded: false },
+		sprite: { animation: new SpriteAnimation(sprites), state: 'idle' },
+		fsm: new StateMachine('idle', {
+			idle: ['run', 'jump'],
+			run: ['idle', 'turn', 'jump'],
+			turn: ['run', 'idle', 'jump'],
+			jump: ['idle', 'run']
+		})
+	})
+}
 
-		this.spriteanimation = new SpriteAnimation(sprites)
-		this.rect = new Rect(10,10*32,32,32)
+function createEnemyEntities(world, spriteSheet, mapEnemies) {
+	const sprites = spriteSheet.get_sprites({
+		walk: [[0, 1, 16, 16], [1, 1, 16, 16]]
+	})
 
-		this.flip = false
-
-		this.acc = new Vector2()
-		this.vel = new Vector2()
-		this.grav = .7
-		this.frict = 1.6
-		this.mass = 25
-		this.speed = 8
-		this.jump = -10
-		this.state = PlayerState.IDLE
-		this.ground = false
-	}
-
-	setState(nextState){
-		if(this.state === nextState){
-			return
-		}
-		this.state = nextState
-	}
-
-	getAnimation(){
-		switch (this.state) {
-			case PlayerState.RUN:
-				return 'walk'
-			case PlayerState.JUMP:
-			case PlayerState.FALL:
-				return 'jump'
-			case PlayerState.TURN:
-			case PlayerState.HURT:
-				return 'turn'
-			case PlayerState.IDLE:
-			default:
-				return 'idle'
-		}
-	}
-
-	update(dt,input){
-		this.rect.update()
-
-		this.acc = new Vector2(0, this.mass)
-		const movingRight = input.isDown(InputManager.ACTIONS.MOVE_RIGHT)
-		const movingLeft = input.isDown(InputManager.ACTIONS.MOVE_LEFT)
-		const jumping = input.isDown(InputManager.ACTIONS.JUMP)
-		
-		if (movingRight){
-			this.acc.x = this.speed
-			this.flip = false
-		}
-
-		if (movingLeft){
-			this.acc.x = -this.speed
-			this.flip = true
-		}
-
-		this.acc.add(this.vel.x * -this.frict, this.vel.y * this.grav)
-		this.integrateVelocity(dt)
-
-		if (this.ground && jumping){
-			this.vel.y = this.jump
-			this.ground = false
-		}
-
-		if(!this.ground){
-			this.animation = 'jump'
-		}else if(this.ground && !movingRight && !movingLeft){
-			this.animation = 'idle'
-		}else if(this.ground && (movingRight || movingLeft)){
-			if((movingLeft && this.vel.x > 0) || (movingRight && this.vel.x < 0)){
-				this.animation = 'turn'
-			}else{
-				this.setState(PlayerState.FALL)
-			}
-		}else if(!this.controller.right && !this.controller.left){
-			this.setState(PlayerState.IDLE)
-		}else if((this.controller.left && this.vel.x > 0) || (this.controller.right && this.vel.x < 0)){
-			this.setState(PlayerState.TURN)
-		}else{
-			this.setState(PlayerState.RUN)
-		}
-
-		this.spriteanimation.speed = this.speed * dt
-	}
-
-
-	integrateVelocity(dt){
-		this.vel.add(this.acc.x * dt, this.acc.y * dt)
-	}
-	render(ctx){
-		this.spriteanimation.play(ctx, this.getAnimation(), this.rect, this.flip)
-	}
-
+	mapEnemies.forEach((enemyDef) => {
+		enemyDef.position.forEach((pos) => {
+			world.createEntity({
+				tag: { type: 'enemy' },
+				transform: { rect: new Rect(pos[0] * 32, pos[1] * 32, 32, 32), flip: true },
+				physics: { vel: new Vector2(-2, 0), acc: new Vector2(), speed: 2, jump: 0, gravity: 42, drag: 0, grounded: false },
+				sprite: { animation: new SpriteAnimation(sprites), state: 'walk' }
+			})
+		})
+	})
 }
