@@ -4,6 +4,10 @@ A classic Super Mario Bros recreation built with JavaScript and the HTML5 Canvas
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
+## Preview
+
+![Game Capture](./game_capture.png)
+
 ## Features
 
 - Classic Super Mario Bros gameplay mechanics
