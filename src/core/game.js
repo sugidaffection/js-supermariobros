@@ -15,25 +15,26 @@ import { HUDSystem } from '../ecs/systems/HUDSystem.js'
 
 const SKIN_WIDTH = 1
 
-// Asset paths
+// Asset paths - use BASE_URL for GitHub Pages compatibility
+const BASE_URL = import.meta.env.BASE_URL || '/'
 const ASSETS = {
 	sprites: {
-		character: '/assets/sprites/character.png',
-		enemies: '/assets/sprites/enemies.png',
-		tileset: '/assets/sprites/tileset.png',
-		worldMap: '/assets/sprites/world_1_1.png'
+		character: `${BASE_URL}assets/sprites/character.png`,
+		enemies: `${BASE_URL}assets/sprites/enemies.png`,
+		tileset: `${BASE_URL}assets/sprites/tileset.png`,
+		worldMap: `${BASE_URL}assets/sprites/world_1_1.png`
 	},
 	audio: {
-		mainTheme: '/assets/audio/main_theme.mp3',
-		levelComplete: '/assets/audio/level_complete.mp3',
-		coin: '/assets/audio/smb_coin.wav',
-		jump: '/assets/audio/smb_jumpsmall.wav',
-		stomp: '/assets/audio/smb_stomp.wav',
-		bump: '/assets/audio/smb_bump.wav',
-		breakBlock: '/assets/audio/smb_breakblock.wav'
+		mainTheme: `${BASE_URL}assets/audio/main_theme.mp3`,
+		levelComplete: `${BASE_URL}assets/audio/level_complete.mp3`,
+		coin: `${BASE_URL}assets/audio/smb_coin.wav`,
+		jump: `${BASE_URL}assets/audio/smb_jumpsmall.wav`,
+		stomp: `${BASE_URL}assets/audio/smb_stomp.wav`,
+		bump: `${BASE_URL}assets/audio/smb_bump.wav`,
+		breakBlock: `${BASE_URL}assets/audio/smb_breakblock.wav`
 	},
 	data: {
-		map: '/assets/data/map.json'
+		map: `${BASE_URL}assets/data/map.json`
 	}
 }
 

@@ -1,6 +1,9 @@
 import { Rect } from './lib.js'
 import { Spritesheet } from './spritesheet.js'
 
+// Use BASE_URL for GitHub Pages compatibility
+const BASE_URL = import.meta.env.BASE_URL || '/'
+
 export class Tilemap {
 	constructor(w, h, levelData) {
 		this.w = w
@@ -8,7 +11,7 @@ export class Tilemap {
 		this.tileSize = 32
 		this.chunkTiles = 16
 		this.chunkPx = this.chunkTiles * this.tileSize
-		this.tilesheet = new Spritesheet('/tileset.png')
+		this.tilesheet = new Spritesheet(`${BASE_URL}assets/sprites/tileset.png`)
 		this.background = []
 		this.solids = []
 		this.chunks = new Map()
