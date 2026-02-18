@@ -2,18 +2,40 @@ import { World } from './ecs.js'
 import { Tilemap } from './tilemap.js'
 import { StateMachine, Rect } from './lib.js'
 import { Spritesheet, SpriteAnimation } from './spritesheet.js'
-import { StaticCollisionGrid } from './ecs/staticCollisionGrid.js'
-import { createMarioEntity, createEnemyEntities } from './mario.js'
-import { InputSystem } from './ecs/systems/InputSystem.js'
-import { PhysicsSystem } from './ecs/systems/PhysicsSystem.js'
-import { CollisionSystem } from './ecs/systems/CollisionSystem.js'
-import { AnimationSystem } from './ecs/systems/AnimationSystem.js'
-import { RenderSystem } from './ecs/systems/RenderSystem.js'
-import { AudioSystem } from './ecs/systems/AudioSystem.js'
-import { EnemySystem } from './ecs/systems/EnemySystem.js'
-import { HUDSystem } from './ecs/systems/HUDSystem.js'
+import { StaticCollisionGrid } from '../ecs/resources/staticCollisionGrid.js'
+import { createMarioEntity, createEnemyEntities } from '../entities/mario.js'
+import { InputSystem } from '../ecs/systems/InputSystem.js'
+import { PhysicsSystem } from '../ecs/systems/PhysicsSystem.js'
+import { CollisionSystem } from '../ecs/systems/CollisionSystem.js'
+import { AnimationSystem } from '../ecs/systems/AnimationSystem.js'
+import { RenderSystem } from '../ecs/systems/RenderSystem.js'
+import { AudioSystem } from '../ecs/systems/AudioSystem.js'
+import { EnemySystem } from '../ecs/systems/EnemySystem.js'
+import { HUDSystem } from '../ecs/systems/HUDSystem.js'
 
 const SKIN_WIDTH = 1
+
+// Asset paths
+const ASSETS = {
+	sprites: {
+		character: '/assets/sprites/character.png',
+		enemies: '/assets/sprites/enemies.png',
+		tileset: '/assets/sprites/tileset.png',
+		worldMap: '/assets/sprites/world_1_1.png'
+	},
+	audio: {
+		mainTheme: '/assets/audio/main_theme.mp3',
+		levelComplete: '/assets/audio/level_complete.mp3',
+		coin: '/assets/audio/smb_coin.wav',
+		jump: '/assets/audio/smb_jumpsmall.wav',
+		stomp: '/assets/audio/smb_stomp.wav',
+		bump: '/assets/audio/smb_bump.wav',
+		breakBlock: '/assets/audio/smb_breakblock.wav'
+	},
+	data: {
+		map: '/assets/data/map.json'
+	}
+}
 
 export class Scene {
 	constructor(ctx, w, h, mapData) {
@@ -23,7 +45,7 @@ export class Scene {
 		this.world = new World()
 		this.tilemap = new Tilemap(w, h, mapData['1_1'])
 		this.cameraX = 0
-		this.music = ['/main_theme.mp3', '/level_complete.mp3']
+		this.music = [ASSETS.audio.mainTheme, ASSETS.audio.levelComplete]
 		this.sound = new Audio()
 		this.sound.volume = 0.1
 
@@ -37,8 +59,8 @@ export class Scene {
 		})
 
 		this._initWorldResources()
-		this.playerEntity = createMarioEntity(this.world, new Spritesheet('/character.png'))
-		createEnemyEntities(this.world, new Spritesheet('/enemies.png'), mapData['1_1'].enemies)
+		this.playerEntity = createMarioEntity(this.world, new Spritesheet(ASSETS.sprites.character))
+		createEnemyEntities(this.world, new Spritesheet(ASSETS.sprites.enemies), mapData['1_1'].enemies)
 		this._registerSystems()
 		this._bindPlayButton()
 	}
@@ -175,10 +197,10 @@ export class Game {
 	}
 
 	async init() {
-		const response = await fetch('/map.json')
+		const response = await fetch(ASSETS.data.map)
 		const mapData = await response.json()
 		this.scene = new Scene(this.ctx, this.w, this.h, mapData)
-		
+
 		// Wait for all images to load
 		await this._waitForImages()
 	}
@@ -190,11 +212,11 @@ export class Game {
 				.filter(e => e.Sprite && e.Sprite.animation)
 				.map(e => e.Sprite.animation.sprites)
 		].flat()
-		
+
 		const promises = spritesheets
 			.filter(s => s instanceof Spritesheet)
 			.map(s => s.waitForLoad())
-		
+
 		await Promise.all(promises)
 		console.log('All images loaded')
 	}
@@ -216,4 +238,3 @@ export class Game {
 		requestAnimationFrame(this.run)
 	}
 }
-

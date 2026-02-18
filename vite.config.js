@@ -14,5 +14,5 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets'
   },
-  publicDir: 'assets'
+  publicDir: 'public'
 })

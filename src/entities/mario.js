@@ -1,5 +1,5 @@
-import { Rect } from './lib.js'
-import { SpriteAnimation } from './spritesheet.js'
+import { Rect } from '../core/lib.js'
+import { SpriteAnimation } from '../core/spritesheet.js'
 
 export function createMarioEntity(world, spritesheet) {
 	const sprites = spritesheet.get_sprites({

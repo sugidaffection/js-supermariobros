@@ -2,12 +2,12 @@
   "name": "js-supermariobros",
   "version": "1.0.0",
   "description": "Super Mario Bros with Javascript",
-  "main": "ecs.js",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "playwright test"
+    "test": "playwright test --config tests/playwright.config.js"
   },
   "repository": {
     "type": "git",

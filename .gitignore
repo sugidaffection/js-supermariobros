@@ -146,14 +146,16 @@ dist
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 
-# Test results
-test-results/
-
 # Build output
 dist/
 
 # Vite
 .vite/
+
+# Test results (Playwright)
+test-results/
+tests/test-results/
+playwright-report/
 
 # Editor
 .vscode/
@@ -165,7 +167,10 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Playwright
-playwright-report/
-test-results/
+# Screenshots / captures
+*.png
+!public/assets/sprites/*.png
+
+# Logs
+*.log
 
