@@ -1,11 +1,8 @@
 import { defineConfig } from 'vite'
 
-const isGitHubActions = process.env.GITHUB_ACTIONS === 'true'
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || ''
-const base = isGitHubActions && repoName ? `/${repoName}/` : '/'
-
+// GitHub Pages uses /<repo-name>/ as base path
 export default defineConfig({
-  base,
+  base: '/js-supermariobros/',
   server: {
     port: 8081,
     open: true
