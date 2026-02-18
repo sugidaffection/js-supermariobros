@@ -25,10 +25,11 @@ export class InputSystem {
 		const state = world.getComponent(playerEntityId, 'State')
 		if (!input || !state) return
 
-		input.up = !!keys[32] || !!keys[38] // Space or Up
+		const jumpDown = !!keys[32] || !!keys[38]
+		input.jumpPressed = jumpDown && !input.up
+		input.up = jumpDown // Space or Up (held)
 		input.left = !!keys[37]
 		input.right = !!keys[39]
-		input.jumpPressed = !!keys[32] || !!keys[38]
 
 		if (input.left) state.facing = 'left'
 		if (input.right) state.facing = 'right'

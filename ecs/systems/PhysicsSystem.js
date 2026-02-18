@@ -1,45 +1,70 @@
-import { Rect } from '../../lib.js'
-
 export class PhysicsSystem {
-	update(world, dt) {
-		const entities = world.query(['Transform', 'Velocity'])
+	update(world) {
+		const entities = world.query(['Transform', 'Velocity', 'Collider'])
 		entities.forEach(entity => {
 			const transform = world.getComponent(entity.id, 'Transform')
 			const velocity = world.getComponent(entity.id, 'Velocity')
+			const collider = world.getComponent(entity.id, 'Collider')
 			const input = world.getComponent(entity.id, 'Input')
+			const state = world.getComponent(entity.id, 'State')
+			let gravityScale = 1
+
+			if (!transform || !velocity || !collider) return
+			if (collider.type !== 'dynamic' || !collider.solid) return
+			if (state && state.value === 'dead') return
 
 			if (input) {
-				// Player input handling
-				if (input.right) {
-					velocity.x = velocity.speed
-				} else if (input.left) {
-					velocity.x = -velocity.speed
+				const moveDir = Number(input.right) - Number(input.left)
+				const maxSpeed = velocity.speed || 0
+				const accelGround = 0.7
+				const accelAir = 0.35
+				const accel = transform.grounded ? accelGround : accelAir
+
+				// Smooth accel/decel for player movement.
+				if (moveDir !== 0) {
+					velocity.x += moveDir * accel
+					if (velocity.x > maxSpeed) velocity.x = maxSpeed
+					if (velocity.x < -maxSpeed) velocity.x = -maxSpeed
 				} else {
-					// Apply friction when no horizontal input
-					velocity.x *= velocity.friction
-					if (Math.abs(velocity.x) < 0.1) velocity.x = 0
+					if (transform.grounded) {
+						velocity.x *= velocity.friction
+						if (Math.abs(velocity.x) < 0.1) velocity.x = 0
+					} else {
+						velocity.x *= 0.985
+					}
 				}
 
-				// Jump only when grounded
 				if (transform.grounded && input.jumpPressed) {
 					velocity.y = velocity.jump
 					transform.grounded = false
 					input.jumpPressed = false
 				}
+
+				// Variable jump height: hold jump to rise higher.
+				if (!transform.grounded && velocity.y < 0) {
+					gravityScale = input.up ? 0.72 : 1.45
+				} else if (!transform.grounded && velocity.y > 0) {
+					gravityScale = 1.1
+				}
 			} else {
-				// Enemy AI - constant movement with friction
-				velocity.x *= (1 - velocity.friction)
+				// Keep enemies moving at their intended pace.
+				if (Math.abs(velocity.x) < 0.01) {
+					const facingDir = state && state.facing === 'right' ? 1 : -1
+					velocity.x = facingDir * (velocity.speed || 2)
+				}
 			}
 
-			// Apply gravity
-			velocity.y += velocity.gravity
+			if (state && !input && velocity.x !== 0) {
+				state.facing = velocity.x < 0 ? 'left' : 'right'
+			}
 
-			// Apply velocity to position
+			velocity.y += velocity.gravity * gravityScale
+			if (velocity.y > 16) velocity.y = 16
+
 			transform.x += velocity.x
 			transform.y += velocity.y
 			transform.update()
 
-			// Keep in bounds
 			if (transform.x < 0) {
 				transform.x = 0
 				transform.update()

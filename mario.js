@@ -11,7 +11,7 @@ export function createMarioEntity(world, spritesheet) {
 
 	const entityId = world.createEntity({
 		Transform: new Rect(32, 320, 32, 32),
-		Velocity: { x: 0, y: 0, speed: 5, jump: -11, friction: 0.85, gravity: 1.2, mass: 1 },
+		Velocity: { x: 0, y: 0, speed: 4.8, jump: -12.5, friction: 0.78, gravity: 0.8, mass: 1 },
 		Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
 		Sprite: { animation: 'idle', flip: false },
 		Input: { up: false, left: false, right: false, jumpPressed: false },
@@ -34,7 +34,7 @@ export function createEnemyEntities(world, spriteSheet, mapEnemies) {
 		enemyDef.position.forEach((pos) => {
 			const entityId = world.createEntity({
 				Transform: new Rect(pos[0] * 32, pos[1] * 32, 32, 32),
-				Velocity: { x: -2, y: 0, speed: 2, friction: 0, gravity: 1.2, mass: 1 },
+				Velocity: { x: -1.4, y: 0, speed: 1.4, friction: 0, gravity: 0.85, mass: 1 },
 				Collider: { type: 'dynamic', solid: true, gridX: 0, gridY: 0 },
 				Sprite: { animation: 'walk', flip: true },
 				State: { value: 'walk', facing: 'left', won: false }

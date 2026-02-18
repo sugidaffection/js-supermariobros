@@ -1,7 +1,5 @@
-import { Rect } from '../../lib.js'
-
 export class CollisionSystem {
-	update(world, scene) {
+	update(world) {
 		const tilemap = world.resources.tilemap
 		const entities = world.query(['Transform', 'Velocity', 'Collider'])
 		
@@ -10,62 +8,64 @@ export class CollisionSystem {
 			const velocity = world.getComponent(entity.id, 'Velocity')
 			const collider = world.getComponent(entity.id, 'Collider')
 			const input = world.getComponent(entity.id, 'Input')
+			const state = world.getComponent(entity.id, 'State')
 			
+			if (!transform || !velocity || !collider) return
 			if (collider.type !== 'dynamic' || !collider.solid) return
+			if (state && state.value === 'dead') return
 
-			// Reset grounded state
+			const prevX = transform.x - velocity.x
+			const prevY = transform.y - velocity.y
+
 			transform.grounded = false
 
-			// Get potential collision tiles
-			const potentialTiles = tilemap.querySolids(transform)
-			
-			potentialTiles.forEach(tile => {
+			// Resolve vertical collisions first.
+			tilemap.querySolids(transform).forEach(tile => {
 				const rect = tile.rect
-				
-				// Ground collision (falling down onto tile)
-				if (transform.bottom + velocity.y > rect.top &&
-					transform.top < rect.top &&
-					transform.left + 1 < rect.right &&
-					transform.right - 1 > rect.left) {
+				const overlapsX = transform.right - 1 > rect.left && transform.left + 1 < rect.right
+				if (!overlapsX) return
+
+				if (velocity.y >= 0 &&
+					prevY + transform.h <= rect.top &&
+					transform.y + transform.h >= rect.top) {
 					velocity.y = 0
 					transform.y = rect.top - transform.h
 					transform.update()
 					transform.grounded = true
-				}
-				// Ceiling collision (jumping up into tile)
-				else if (transform.top + velocity.y < rect.bottom &&
-					transform.bottom > rect.bottom &&
-					transform.left + 1 < rect.right &&
-					transform.right - 1 > rect.left) {
+				} else if (velocity.y < 0 &&
+					prevY >= rect.bottom &&
+					transform.y <= rect.bottom) {
 					transform.y = rect.bottom
 					transform.update()
-					velocity.y = 1
+					velocity.y = 0
 				}
+			})
 
-				// Left side collision
-				if (transform.right > rect.left &&
-					transform.left < rect.left &&
-					transform.top < rect.bottom &&
-					transform.bottom > rect.top) {
+			// Resolve horizontal collisions after vertical placement.
+			tilemap.querySolids(transform).forEach(tile => {
+				const rect = tile.rect
+				const overlapsY = transform.bottom - 1 > rect.top && transform.top + 1 < rect.bottom
+				if (!overlapsY) return
+
+				if (velocity.x > 0 &&
+					prevX + transform.w <= rect.left &&
+					transform.x + transform.w >= rect.left) {
 					transform.x = rect.left - transform.w
 					transform.update()
 					if (input) {
 						velocity.x = 0
 					} else {
-						velocity.x *= -1 // Enemy bounce
+						velocity.x = -Math.abs(velocity.x)
 					}
-				}
-				// Right side collision
-				else if (transform.left < rect.right &&
-					transform.right > rect.right &&
-					transform.top < rect.bottom &&
-					transform.bottom > rect.top) {
+				} else if (velocity.x < 0 &&
+					prevX >= rect.right &&
+					transform.x <= rect.right) {
 					transform.x = rect.right
 					transform.update()
 					if (input) {
 						velocity.x = 0
 					} else {
-						velocity.x *= -1 // Enemy bounce
+						velocity.x = Math.abs(velocity.x)
 					}
 				}
 			})
