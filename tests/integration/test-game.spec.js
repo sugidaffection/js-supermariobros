@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 test('game loads and plays without critical errors', async ({ page }) => {
   // Collect console messages

@@ -2,10 +2,10 @@ import { defineConfig } from 'vite'
 
 // GitHub Pages uses /<repo-name>/ as base path
 export default defineConfig({
-  base: '/js-supermariobros/',
+  base: '/',
   server: {
     port: 8081,
-    open: true
+    open: false
   },
   build: {
     outDir: 'dist',
