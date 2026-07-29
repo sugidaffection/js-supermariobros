@@ -12,7 +12,7 @@ import { EnemySystem } from './ecs/systems/EnemySystem.js'
 import { HUDSystem } from './ecs/systems/HUDSystem.js'
 import { createMarioEntity, createEnemyEntities } from './entities/mario.js'
 import { Game, Scene } from './core/game.js'
-import { Rect, StateMachine, Vector2, InputManager } from './core/lib.js'
+import { Rect, StateMachine, Vector2, PHYSICS_CONSTANTS } from './core/lib.js'
 
 // Expose to window for global access (since other files expect them globally)
 window.World = World
@@ -35,11 +35,11 @@ window.Scene = Scene
 window.Rect = Rect
 window.StateMachine = StateMachine
 window.Vector2 = Vector2
-window.InputManager = InputManager
+window.PHYSICS_CONSTANTS = PHYSICS_CONSTANTS
 
 document.addEventListener('DOMContentLoaded', async () => {
-	const game = new Game(600, 448)
-	window.GameInstance = game
-	await game.init()
-	game.run(0)
+const game = new Game(600, 448)
+window.GameInstance = game
+await game.init()
+game.run(0)
 })

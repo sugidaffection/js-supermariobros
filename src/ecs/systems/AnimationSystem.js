@@ -1,6 +1,6 @@
 export class AnimationSystem {
 	update(world) {
-		const entities = world.query(['Transform', 'Velocity', 'Sprite', 'State', 'Input'])
+		const entities = world.query(['Transform', 'Velocity', 'Sprite', 'State'])
 		entities.forEach(entity => {
 			const transform = world.getComponent(entity.id, 'Transform')
 			const velocity = world.getComponent(entity.id, 'Velocity')
@@ -22,7 +22,7 @@ export class AnimationSystem {
 					sprite.animation = 'jump'
 					state.value = 'jump'
 				}
-			} else if (isPlayer) {
+			} else if (isPlayer && input) {
 				// Player animation based on input and velocity
 				const isMoving = Math.abs(velocity.x) > 0.5
 				if (isMoving) {
