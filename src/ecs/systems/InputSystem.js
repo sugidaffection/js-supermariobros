@@ -8,10 +8,10 @@ export class InputSystem {
 		this.ready = true
 		const keys = world.resources.input.keys
 		document.addEventListener('keydown', (event) => {
-			keys[event.keyCode] = true
+			keys[event.code] = true
 		})
 		document.addEventListener('keyup', (event) => {
-			keys[event.keyCode] = false
+			keys[event.code] = false
 		})
 	}
 
@@ -25,11 +25,12 @@ export class InputSystem {
 		const state = world.getComponent(playerEntityId, 'State')
 		if (!input || !state) return
 
-		const jumpDown = !!keys[32] || !!keys[38]
+		// Support Arrow keys, WASD, and Space for jump
+		const jumpDown = !!keys['Space'] || !!keys['ArrowUp'] || !!keys['KeyW']
 		input.jumpPressed = jumpDown && !input.up
-		input.up = jumpDown // Space or Up (held)
-		input.left = !!keys[37]
-		input.right = !!keys[39]
+		input.up = jumpDown
+		input.left = !!keys['ArrowLeft'] || !!keys['KeyA']
+		input.right = !!keys['ArrowRight'] || !!keys['KeyD']
 
 		if (input.left) state.facing = 'left'
 		if (input.right) state.facing = 'right'
